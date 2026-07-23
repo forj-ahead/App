@@ -13,7 +13,6 @@ export default async function CallsPage() {
 
   const isAdmin = profile?.role === 'admin'
 
-  // Admins see all calls; clients see only their business's calls
   const query = supabase
     .from('calls')
     .select('*, leads(score, caller_name, service_requested), businesses(name)')
@@ -26,83 +25,75 @@ export default async function CallsPage() {
 
   const { data: calls } = await query
 
-  const formatDuration = (s: number) => {
-    if (s < 60) return `${s}s`
-    return `${Math.floor(s / 60)}m ${s % 60}s`
-  }
+  const fmt = (s: number) => s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-white">All Calls</h1>
-        <p className="text-white/35 text-sm mt-0.5">
-          {isAdmin ? 'Every inbound call across all clients' : 'Every inbound call, including unscored ones'}
+    <div className="p-8 max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-lg font-semibold text-white">Calls</h1>
+        <p className="text-zinc-500 text-sm mt-0.5">
+          {isAdmin ? 'All inbound calls across every client' : 'Every inbound call, including unscored ones'}
         </p>
       </div>
 
       {!calls?.length ? (
-        <div className="text-center py-24 border border-white/[0.06] rounded-xl bg-[#0D1525]">
-          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-            <Phone size={20} className="text-white/20" />
+        <div className="flex flex-col items-center justify-center py-24 border border-white/[0.06] rounded-lg">
+          <div className="w-10 h-10 rounded-full border border-white/[0.06] flex items-center justify-center mb-4">
+            <Phone size={16} className="text-zinc-700" />
           </div>
-          <p className="text-white/40 font-medium text-sm mb-1">No calls yet</p>
-          <p className="text-white/20 text-xs">Calls will appear here after Maya answers your first call</p>
+          <p className="text-zinc-500 text-sm font-medium">No calls yet</p>
+          <p className="text-zinc-700 text-xs mt-1">Calls appear here after Maya answers your first call</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="border border-white/[0.06] rounded-lg divide-y divide-white/[0.04] overflow-hidden">
           {calls.map(call => {
             const lead = (call as any).leads
             const biz = (call as any).businesses
             const score = lead?.score
 
             return (
-              <div key={call.id} className="bg-[#0D1525] border border-white/[0.06] hover:border-white/10 rounded-xl px-5 py-4 flex items-center gap-4 transition-colors">
+              <div key={call.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-white/[0.02] transition-colors">
                 {lead ? (
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-black tabular-nums ${
-                    score >= 8 ? 'bg-green-500/12 text-green-400' :
-                    score >= 6 ? 'bg-amber-500/12 text-amber-400' :
-                                 'bg-red-500/12 text-red-400'
+                  <span className={`text-xs font-semibold tabular-nums w-8 text-center ${
+                    score >= 8 ? 'text-emerald-400' :
+                    score >= 6 ? 'text-amber-400' : 'text-red-400'
                   }`}>
                     {score}
-                  </div>
+                  </span>
                 ) : (
-                  <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  <div className="w-8 flex justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
                   </div>
                 )}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-white font-medium text-sm">
+                    <span className="text-white text-sm font-medium">
                       {lead?.caller_name ?? call.caller_number}
                     </span>
                     {lead?.caller_name && (
-                      <span className="text-white/25 text-xs font-mono">{call.caller_number}</span>
+                      <span className="text-zinc-700 text-xs font-mono">{call.caller_number}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    {lead?.service_requested && (
-                      <p className="text-white/35 text-xs truncate">{lead.service_requested}</p>
-                    )}
-                    {isAdmin && biz?.name && (
-                      <span className="text-white/20 text-xs">· {biz.name}</span>
-                    )}
+                    {lead?.service_requested && <p className="text-zinc-600 text-xs truncate">{lead.service_requested}</p>}
+                    {isAdmin && biz?.name && <span className="text-zinc-800 text-xs">· {biz.name}</span>}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 flex-shrink-0">
-                  <div className="flex items-center gap-1.5 text-white/25 text-xs">
+                  <div className="flex items-center gap-1 text-zinc-700 text-xs">
                     <Clock size={11} />
-                    {formatDuration(call.duration_seconds)}
+                    {fmt(call.duration_seconds)}
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded border ${
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
                     lead
-                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                      : 'bg-white/5 text-white/25 border-white/10'
+                      ? 'text-blue-400 bg-blue-500/8 border-blue-500/15'
+                      : 'text-zinc-700 bg-white/3 border-white/8'
                   }`}>
                     {lead ? 'Scored' : 'Unscored'}
                   </span>
-                  <p className="text-white/20 text-xs">
+                  <p className="text-zinc-700 text-xs tabular-nums">
                     {new Date(call.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </p>
                 </div>

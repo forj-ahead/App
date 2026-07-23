@@ -25,27 +25,22 @@ export default async function DashboardPage() {
     totalLeads: totalLeadsRes.count ?? 0,
     totalCalls: totalCallsRes.count ?? 0,
     newLeads: newLeadsRes.count ?? 0,
-    businessName: profile?.businesses?.name ?? 'Your Business',
+    businessName: profile?.businesses?.name ?? '',
   }
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="mb-7">
-        <p className="text-white/25 text-xs font-medium mb-1">{today}</p>
-        <h1 className="text-2xl font-bold text-white">Lead Dashboard</h1>
+    <div className="p-8 max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-lg font-semibold text-white">Leads</h1>
         {profile?.businesses?.name && (
-          <p className="text-white/35 text-sm mt-0.5">{profile.businesses.name}</p>
+          <p className="text-zinc-500 text-sm mt-0.5">{profile.businesses.name}</p>
         )}
       </div>
       <StatsBar stats={stats} />
       <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white/60 text-sm font-semibold">
-            {leadsRes.data?.length ?? 0} lead{leadsRes.data?.length !== 1 ? 's' : ''} · sorted by score
-          </h2>
-        </div>
+        <p className="text-zinc-600 text-xs font-medium mb-3">
+          {leadsRes.data?.length ?? 0} lead{leadsRes.data?.length !== 1 ? 's' : ''} · sorted by score
+        </p>
         <LeadFeed leads={leadsRes.data ?? []} />
       </div>
     </div>

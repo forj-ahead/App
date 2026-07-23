@@ -9,44 +9,28 @@ interface StatsBarProps {
 
 export function StatsBar({ stats }: StatsBarProps) {
   const items = [
-    {
-      label: 'New Leads',
-      value: stats.newLeads,
-      sub: 'awaiting follow-up',
-      accent: true,
-    },
-    {
-      label: 'Total Leads',
-      value: stats.totalLeads,
-      sub: 'all time',
-      accent: false,
-    },
-    {
-      label: 'Total Calls',
-      value: stats.totalCalls,
-      sub: 'all time',
-      accent: false,
-    },
+    { label: 'New Leads', value: stats.newLeads, accent: true },
+    { label: 'Total Leads', value: stats.totalLeads, accent: false },
+    { label: 'Total Calls', value: stats.totalCalls, accent: false },
   ]
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      {items.map(({ label, value, sub, accent }) => (
+      {items.map(({ label, value, accent }) => (
         <div
           key={label}
-          className={`rounded-xl border p-5 ${
+          className={`rounded-lg border px-5 py-4 ${
             accent
-              ? 'bg-[#2D6FE8]/10 border-[#2D6FE8]/25'
-              : 'bg-[#0D1525] border-white/[0.06]'
+              ? 'bg-blue-500/5 border-blue-500/15'
+              : 'bg-white/[0.02] border-white/[0.06]'
           }`}
         >
-          <p className={`text-xs font-medium uppercase tracking-wider mb-3 ${accent ? 'text-[#4D8BF0]/70' : 'text-white/30'}`}>
+          <p className={`text-xs font-medium mb-3 ${accent ? 'text-blue-400/70' : 'text-zinc-600'}`}>
             {label}
           </p>
-          <p className={`text-4xl font-black tabular-nums tracking-tight ${accent ? 'text-[#4D8BF0]' : 'text-white'}`}>
+          <p className={`text-3xl font-bold tabular-nums tracking-tight ${accent ? 'text-blue-400' : 'text-white'}`}>
             {value}
           </p>
-          <p className={`text-xs mt-1.5 ${accent ? 'text-[#4D8BF0]/40' : 'text-white/20'}`}>{sub}</p>
         </div>
       ))}
     </div>

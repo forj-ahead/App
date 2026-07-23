@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Phone, Plus, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Phone, Plus } from 'lucide-react'
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -11,61 +11,42 @@ export default async function ClientsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-7">
+    <div className="p-8 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Clients</h1>
-          <p className="text-white/35 text-sm mt-0.5">{businesses?.length ?? 0} active client{businesses?.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-lg font-semibold text-white">Clients</h1>
+          <p className="text-zinc-500 text-sm mt-0.5">{businesses?.length ?? 0} total</p>
         </div>
-        <Link
-          href="/admin/clients/new"
-          className="flex items-center gap-2 bg-[#2D6FE8] hover:bg-[#4D8BF0] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
-        >
-          <Plus size={15} />
-          Onboard Client
+        <Link href="/admin/clients/new" className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+          <Plus size={13} />
+          Onboard client
         </Link>
       </div>
 
       {!businesses?.length ? (
-        <div className="text-center py-24 bg-[#0D1525] border border-white/[0.06] rounded-xl">
-          <p className="text-white/40 font-medium mb-1">No clients yet</p>
-          <p className="text-white/20 text-sm mb-6">Add your first client to get started</p>
-          <Link href="/admin/clients/new" className="bg-[#2D6FE8] hover:bg-[#4D8BF0] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors">
-            Onboard First Client
+        <div className="flex flex-col items-center justify-center py-24 border border-white/[0.06] rounded-lg">
+          <p className="text-zinc-500 text-sm font-medium mb-1">No clients yet</p>
+          <p className="text-zinc-700 text-xs mb-5">Add your first client to get started</p>
+          <Link href="/admin/clients/new" className="bg-white hover:bg-zinc-100 text-black text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+            Onboard first client
           </Link>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="border border-white/[0.06] rounded-lg divide-y divide-white/[0.04] overflow-hidden">
           {businesses.map(biz => (
-            <Link
-              key={biz.id}
-              href={`/admin/clients/${biz.id}`}
-              className="flex items-center gap-4 bg-[#0D1525] border border-white/[0.06] hover:border-white/10 rounded-xl px-5 py-4 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#1A2340] flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">{biz.name[0]}</span>
+            <Link key={biz.id} href={`/admin/clients/${biz.id}`} className="flex items-center gap-4 px-4 py-3.5 hover:bg-white/[0.02] transition-colors">
+              <div className="w-8 h-8 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-medium text-sm">{biz.name[0]}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm">{biz.name}</p>
-                <p className="text-white/35 text-xs mt-0.5">{biz.industry}</p>
+                <p className="text-white text-sm font-medium">{biz.name}</p>
+                <p className="text-zinc-600 text-xs mt-0.5">{biz.industry}</p>
               </div>
-              <div className="flex items-center gap-2 text-white/25 text-xs flex-shrink-0">
+              <div className="flex items-center gap-2 text-zinc-700 text-xs">
                 <Phone size={11} />
-                <span className="font-mono">{biz.twilio_number ?? 'No number'}</span>
+                <span className="font-mono">{biz.twilio_number ?? '—'}</span>
               </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                {biz.retell_agent_id ? (
-                  <span className="flex items-center gap-1 text-green-400 text-xs">
-                    <CheckCircle2 size={12} />
-                    Active
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-amber-400/70 text-xs">
-                    <AlertCircle size={12} />
-                    No agent
-                  </span>
-                )}
-              </div>
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${biz.retell_agent_id ? 'bg-emerald-400' : 'bg-amber-400/50'}`} />
             </Link>
           ))}
         </div>

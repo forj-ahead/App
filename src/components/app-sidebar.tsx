@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, ShieldCheck, Zap } from 'lucide-react'
+import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -13,7 +13,7 @@ interface AppSidebarProps {
 
 const clientNav = [
   { href: '/dashboard', label: 'Leads', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/calls', label: 'All Calls', icon: Phone, exact: false },
+  { href: '/dashboard/calls', label: 'Calls', icon: Phone, exact: false },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings, exact: false },
 ]
 
@@ -22,23 +22,6 @@ const adminNav = [
   { href: '/admin/clients', label: 'Clients', icon: Users, exact: false },
   { href: '/admin/templates', label: 'Templates', icon: FileText, exact: false },
 ]
-
-function NavItem({ href, label, icon: Icon, active }: { href: string; label: string; icon: React.ElementType; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
-        active
-          ? 'bg-[#2D6FE8]/15 text-[#4D8BF0]'
-          : 'text-white/40 hover:text-white/80 hover:bg-white/5'
-      )}
-    >
-      <Icon size={15} className={active ? 'text-[#4D8BF0]' : ''} />
-      {label}
-    </Link>
-  )
-}
 
 export function AppSidebar({ user, profile }: AppSidebarProps) {
   const pathname = usePathname()
@@ -57,56 +40,75 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
   }
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-[#070C18] border-r border-white/[0.06] flex flex-col h-screen sticky top-0">
+    <aside className="w-52 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#0d0d0f] border-r border-white/[0.06]">
       {/* Logo */}
-      <div className="px-5 h-14 flex items-center border-b border-white/[0.06]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2D6FE8] to-[#1A4FC0] flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-900/30">
-            <Zap size={14} className="text-white" fill="white" />
+      <div className="h-14 px-4 flex items-center border-b border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <Zap size={13} className="text-white" fill="white" />
           </div>
-          <span className="text-white font-black text-base tracking-tight">Forj</span>
+          <span className="text-white font-semibold text-sm tracking-tight">Forj</span>
         </div>
+        {isAdmin && (
+          <span className="ml-auto text-[10px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded">
+            Admin
+          </span>
+        )}
       </div>
 
-      {/* Role badge */}
-      {isAdmin && (
-        <div className="px-4 pt-4">
-          <div className="flex items-center gap-1.5 bg-[#2D6FE8]/10 border border-[#2D6FE8]/20 rounded-md px-2.5 py-1.5 w-fit">
-            <ShieldCheck size={11} className="text-[#4D8BF0]" />
-            <span className="text-[#4D8BF0] text-xs font-semibold">Admin</span>
-          </div>
-        </div>
-      )}
-
       {/* Nav */}
-      <nav className="flex-1 px-3 pt-4 space-y-0.5 overflow-y-auto">
-        <p className="text-white/20 text-[10px] font-semibold uppercase tracking-wider px-3 mb-2">
-          {isAdmin ? 'Management' : 'Menu'}
-        </p>
-        {nav.map(({ href, label, icon, exact }) => (
-          <NavItem key={href} href={href} label={label} icon={icon} active={isActive(href, exact)} />
-        ))}
+      <nav className="flex-1 px-2 py-3 space-y-0.5">
+        {nav.map(({ href, label, icon: Icon, exact }) => {
+          const active = isActive(href, exact)
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
+                active
+                  ? 'bg-white/8 text-white font-medium'
+                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 font-normal'
+              )}
+            >
+              <Icon size={14} className={active ? 'text-white' : 'text-zinc-600'} />
+              {label}
+            </Link>
+          )
+        })}
 
         {isAdmin && (
           <>
-            <div className="pt-5 pb-1 px-3">
-              <p className="text-white/20 text-[10px] font-semibold uppercase tracking-wider">Client View</p>
+            <div className="pt-4 pb-1 px-3">
+              <span className="text-[10px] font-medium text-zinc-700 uppercase tracking-wider">Client view</span>
             </div>
-            {clientNav.map(({ href, label, icon, exact }) => (
-              <NavItem key={`c-${href}`} href={href} label={label} icon={icon} active={isActive(href, exact)} />
+            {clientNav.map(({ href, label, icon: Icon, exact }) => (
+              <Link
+                key={`c-${href}`}
+                href={href}
+                className={cn(
+                  'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
+                  isActive(href, exact)
+                    ? 'bg-white/8 text-white font-medium'
+                    : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/5 font-normal'
+                )}
+              >
+                <Icon size={14} className="text-zinc-700" />
+                {label}
+              </Link>
             ))}
           </>
         )}
       </nav>
 
       {/* Footer */}
-      <div className="px-3 pb-4 border-t border-white/[0.06] pt-3">
-        <div className="px-3 py-2 mb-1">
-          <p className="text-white/30 text-xs truncate">{user?.email}</p>
+      <div className="px-2 py-3 border-t border-white/[0.06]">
+        <div className="px-3 py-1.5 mb-1">
+          <p className="text-zinc-600 text-xs truncate">{user?.email}</p>
         </div>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-white/30 hover:text-white/70 hover:bg-white/5 transition-colors w-full"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-colors"
         >
           <LogOut size={14} />
           Sign out

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, FileText, Phone, Plus } from 'lucide-react'
+import { Users, FileText, Phone, TrendingUp, Plus } from 'lucide-react'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -19,76 +19,63 @@ export default async function AdminPage() {
     .limit(5)
 
   const stats = [
-    { label: 'Clients', value: clientsRes.count ?? 0, icon: Users, href: '/admin/clients', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'Templates', value: templatesRes.count ?? 0, icon: FileText, href: '/admin/templates', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { label: 'Total Calls', value: callsRes.count ?? 0, icon: Phone, href: '/dashboard/calls', color: 'text-green-400', bg: 'bg-green-500/10' },
-    { label: 'Total Leads', value: leadsRes.count ?? 0, icon: Users, href: '/dashboard', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { label: 'Clients', value: clientsRes.count ?? 0, icon: Users, href: '/admin/clients' },
+    { label: 'Templates', value: templatesRes.count ?? 0, icon: FileText, href: '/admin/templates' },
+    { label: 'Total Calls', value: callsRes.count ?? 0, icon: Phone, href: '/dashboard/calls' },
+    { label: 'Total Leads', value: leadsRes.count ?? 0, icon: TrendingUp, href: '/dashboard' },
   ]
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-white">Overview</h1>
-        <p className="text-white/35 text-sm mt-0.5">All clients, templates, and system activity</p>
+    <div className="p-8 max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-lg font-semibold text-white">Overview</h1>
+        <p className="text-zinc-500 text-sm mt-0.5">All clients, templates, and activity</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-4 gap-3 mb-8">
-        {stats.map(({ label, value, icon: Icon, href, color, bg }) => (
-          <Link key={label} href={href} className="bg-[#0D1525] border border-white/[0.06] hover:border-white/10 rounded-xl p-5 transition-colors group">
-            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center mb-3`}>
-              <Icon size={15} className={color} />
+        {stats.map(({ label, value, icon: Icon, href }) => (
+          <Link key={label} href={href} className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] rounded-lg p-4 transition-colors group">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-zinc-600 text-xs font-medium">{label}</p>
+              <Icon size={13} className="text-zinc-700 group-hover:text-zinc-500 transition-colors" />
             </div>
-            <p className="text-3xl font-black text-white tabular-nums">{value}</p>
-            <p className="text-white/30 text-xs font-medium mt-1">{label}</p>
+            <p className="text-2xl font-semibold text-white tabular-nums">{value}</p>
           </Link>
         ))}
       </div>
 
-      {/* Quick actions */}
-      <div className="flex gap-3 mb-8">
-        <Link
-          href="/admin/clients/new"
-          className="flex items-center gap-2 bg-[#2D6FE8] hover:bg-[#4D8BF0] text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
-        >
-          <Plus size={15} />
-          Onboard Client
+      <div className="flex gap-2 mb-10">
+        <Link href="/admin/clients/new" className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+          <Plus size={13} />
+          Onboard client
         </Link>
-        <Link
-          href="/admin/templates/new"
-          className="flex items-center gap-2 bg-white/5 hover:bg-white/8 border border-white/10 text-white/70 hover:text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
-        >
-          <Plus size={15} />
-          New Template
+        <Link href="/admin/templates/new" className="inline-flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] text-zinc-300 text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+          <Plus size={13} />
+          New template
         </Link>
       </div>
 
-      {/* Recent clients */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white/60 text-sm font-semibold">Recent Clients</h2>
-          <Link href="/admin/clients" className="text-[#4D8BF0] text-xs hover:underline">View all</Link>
+          <p className="text-zinc-600 text-xs font-medium">Recent clients</p>
+          <Link href="/admin/clients" className="text-zinc-500 hover:text-zinc-300 text-xs transition-colors">View all →</Link>
         </div>
         {!recentClients?.length ? (
-          <div className="bg-[#0D1525] border border-white/[0.06] rounded-xl px-5 py-10 text-center">
-            <p className="text-white/30 text-sm">No clients yet</p>
+          <div className="border border-white/[0.06] rounded-lg px-4 py-10 text-center">
+            <p className="text-zinc-600 text-sm">No clients yet</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="border border-white/[0.06] rounded-lg divide-y divide-white/[0.04] overflow-hidden">
             {recentClients.map(biz => (
-              <Link
-                key={biz.id}
-                href={`/admin/clients/${biz.id}`}
-                className="flex items-center gap-4 bg-[#0D1525] border border-white/[0.06] hover:border-white/10 rounded-xl px-5 py-3.5 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-lg bg-[#1A2340] flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-xs">{biz.name[0]}</span>
+              <Link key={biz.id} href={`/admin/clients/${biz.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
+                <div className="w-7 h-7 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-medium text-xs">{biz.name[0]}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium text-sm">{biz.name}</p>
-                  <p className="text-white/30 text-xs">{biz.industry}</p>
+                  <p className="text-white text-sm font-medium">{biz.name}</p>
+                  <p className="text-zinc-600 text-xs">{biz.industry}</p>
                 </div>
-                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${biz.retell_agent_id ? 'bg-green-400' : 'bg-amber-400/60'}`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${biz.retell_agent_id ? 'bg-emerald-400' : 'bg-amber-400/50'}`} />
               </Link>
             ))}
           </div>
