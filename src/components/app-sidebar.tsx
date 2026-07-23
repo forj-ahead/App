@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Phone, Settings, Users, LogOut, BarChart2, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +24,6 @@ const clientNav = [
 const adminNav = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/clients', label: 'Clients', icon: Users, exact: false },
-  { href: '/admin/templates', label: 'Templates', icon: FileText, exact: false },
 ]
 
 export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps) {

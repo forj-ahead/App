@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+const TONE_DESCRIPTIONS: Record<string, string> = {
+  friendly: 'warm, upbeat, and personable — like talking to a helpful neighbor',
+  professional: 'polished and businesslike — confident and efficient',
+  casual: 'relaxed and conversational — like chatting with someone you know',
+  concise: 'direct and to the point — no small talk, just get the info and wrap up',
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,7 +20,9 @@ export async function POST(req: NextRequest) {
   const {
     businessName,
     industry,
-    agentName,
+    agentName = 'Maya',
+    tone = 'friendly',
+    greeting,
     servicesOffered,
     servicesExcluded,
     serviceArea,
@@ -25,30 +34,50 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.RETELL_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'Retell API key not configured' }, { status: 500 })
 
-  const offeredList = servicesOffered || 'general services'
-  const excludedList = servicesExcluded || 'none specified'
-  const areaText = serviceArea ? `Service area: ${serviceArea}.` : ''
-  const questionsText = customQuestions
-    ? `\n\nAdditional questions to ask:\n${customQuestions}`
+  const toneDesc = TONE_DESCRIPTIONS[tone] ?? TONE_DESCRIPTIONS.friendly
+
+  const greetingLine = greeting
+    ? `Always open with this exact greeting: "${greeting}"`
+    : `Open with a warm, natural greeting — introduce yourself as ${agentName} from ${businessName} and ask how you can help.`
+
+  const servicesLine = servicesOffered
+    ? `Services we OFFER: ${servicesOffered}`
+    : `You handle general ${industry} inquiries — use your judgment on what likely fits.`
+
+  const excludedLine = servicesExcluded
+    ? `Services we do NOT offer (politely decline and end the call): ${servicesExcluded}`
     : ''
-  const disqualifyText = disqualifyIf
-    ? `\n\nDisqualify (score 1–3 and end the call politely) if:\n${disqualifyIf}`
+
+  const areaLine = serviceArea
+    ? `We only serve: ${serviceArea}. If the caller is outside this area, let them know politely and end the call.`
     : ''
-  const extraText = extraContext ? `\n\nAdditional context:\n${extraContext}` : ''
 
-  const prompt = `You are ${agentName || 'a friendly assistant'}, a call answering agent for ${businessName}, a ${industry} company. Your job is to answer inbound calls, understand what the caller needs, and qualify them as a potential lead.
+  const questionsLine = customQuestions
+    ? `Key questions to ask (weave these in naturally — don't read them as a list):\n${customQuestions}`
+    : `Ask the questions that make sense for a ${industry} business — understand what they need, their timeline, and whether they're the decision maker.`
 
-${areaText}
-Services we OFFER: ${offeredList}
-Services we do NOT offer: ${excludedList}
+  const disqualifyLine = disqualifyIf
+    ? `Score 1–3 and wrap up politely if:\n${disqualifyIf}`
+    : `Score 1–3 if the caller clearly doesn't need ${industry} services, is just price fishing with no intent to move forward, or is outside any stated service area.`
 
-When a caller contacts us:
-1. Greet them warmly and ask how you can help.
-2. Listen to what they need. If they're asking for a service we don't offer, let them know politely and wish them well — do not continue qualifying.
-3. Ask clarifying questions to understand their situation, timeline, and fit.
-4. Always collect: their name, phone number or best way to reach them, and a brief description of what they need.${questionsText}${disqualifyText}${extraText}
+  const extraLine = extraContext ? `\nAdditional context:\n${extraContext}` : ''
 
-Keep conversations warm, natural, and brief. Do not oversell or make promises about pricing or availability. End every qualified call by letting them know someone will follow up shortly.`
+  const prompt = `You are ${agentName}, a call answering agent for ${businessName}, a ${industry} business. Your tone should be ${toneDesc}.
+
+${greetingLine}
+
+${servicesLine}
+${excludedLine}
+${areaLine}
+
+Your job:
+1. Understand what the caller needs.
+2. ${questionsLine}
+3. Always collect: the caller's name and best callback number before ending the call.
+4. ${disqualifyLine}
+5. End every qualified call by letting them know someone will follow up shortly.
+
+Keep conversations natural and don't rush. Never make promises about pricing, availability, or timelines.${extraLine}`
 
   // Create Retell LLM
   const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
@@ -78,7 +107,7 @@ Keep conversations warm, natural, and brief. Do not oversell or make promises ab
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      agent_name: `${businessName} — ${agentName || 'Agent'}`,
+      agent_name: `${businessName} — ${agentName}`,
       response_engine: { type: 'retell-llm', llm_id: llm.llm_id },
       voice_id: 'elevenlabs-Adrian',
     }),
@@ -90,6 +119,5 @@ Keep conversations warm, natural, and brief. Do not oversell or make promises ab
   }
 
   const agent = await agentRes.json()
-
   return NextResponse.json({ agentId: agent.agent_id, llmId: llm.llm_id })
 }

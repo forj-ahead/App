@@ -1,21 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
 import { NewClientForm } from '@/components/new-client-form'
 
-export default async function NewClientPage() {
-  const supabase = await createClient()
-
-  const { data: templates } = await supabase
-    .from('templates')
-    .select('id, name, industry')
-    .order('name')
-
+export default function NewClientPage() {
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white mb-1">Onboard New Client</h1>
-        <p className="text-white/40 text-sm">Choose a template and configure their agent</p>
+        <p className="text-white/40 text-sm">Fill in what you know — the agent will be created automatically.</p>
       </div>
-      <NewClientForm templates={templates ?? []} />
+      <NewClientForm />
     </div>
   )
 }
