@@ -7,16 +7,24 @@ export default async function CallsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('business_id')
+    .select('role, business_id')
     .eq('id', user!.id)
     .single()
 
-  const { data: calls } = await supabase
+  const isAdmin = profile?.role === 'admin'
+
+  // Admins see all calls; clients see only their business's calls
+  const query = supabase
     .from('calls')
-    .select('*, leads(score, caller_name, service_requested)')
-    .eq('business_id', profile?.business_id)
+    .select('*, leads(score, caller_name, service_requested), businesses(name)')
     .order('created_at', { ascending: false })
     .limit(100)
+
+  if (!isAdmin && profile?.business_id) {
+    query.eq('business_id', profile.business_id)
+  }
+
+  const { data: calls } = await query
 
   const formatDuration = (s: number) => {
     if (s < 60) return `${s}s`
@@ -27,7 +35,9 @@ export default async function CallsPage() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-7">
         <h1 className="text-2xl font-bold text-white">All Calls</h1>
-        <p className="text-white/35 text-sm mt-0.5">Every inbound call, including unscored ones</p>
+        <p className="text-white/35 text-sm mt-0.5">
+          {isAdmin ? 'Every inbound call across all clients' : 'Every inbound call, including unscored ones'}
+        </p>
       </div>
 
       {!calls?.length ? (
@@ -42,13 +52,12 @@ export default async function CallsPage() {
         <div className="space-y-2">
           {calls.map(call => {
             const lead = (call as any).leads
-            const scored = !!lead
+            const biz = (call as any).businesses
             const score = lead?.score
 
             return (
               <div key={call.id} className="bg-[#0D1525] border border-white/[0.06] hover:border-white/10 rounded-xl px-5 py-4 flex items-center gap-4 transition-colors">
-                {/* Score or dot */}
-                {scored ? (
+                {lead ? (
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-black tabular-nums ${
                     score >= 8 ? 'bg-green-500/12 text-green-400' :
                     score >= 6 ? 'bg-amber-500/12 text-amber-400' :
@@ -71,9 +80,14 @@ export default async function CallsPage() {
                       <span className="text-white/25 text-xs font-mono">{call.caller_number}</span>
                     )}
                   </div>
-                  {lead?.service_requested && (
-                    <p className="text-white/35 text-xs mt-0.5 truncate">{lead.service_requested}</p>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {lead?.service_requested && (
+                      <p className="text-white/35 text-xs truncate">{lead.service_requested}</p>
+                    )}
+                    {isAdmin && biz?.name && (
+                      <span className="text-white/20 text-xs">· {biz.name}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-4 flex-shrink-0">
@@ -82,11 +96,11 @@ export default async function CallsPage() {
                     {formatDuration(call.duration_seconds)}
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded border ${
-                    scored
+                    lead
                       ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                       : 'bg-white/5 text-white/25 border-white/10'
                   }`}>
-                    {scored ? 'Scored' : 'Unscored'}
+                    {lead ? 'Scored' : 'Unscored'}
                   </span>
                   <p className="text-white/20 text-xs">
                     {new Date(call.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}

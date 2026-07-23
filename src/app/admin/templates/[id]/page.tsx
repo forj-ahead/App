@@ -3,13 +3,14 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, MessageSquare } from 'lucide-react'
 
-export default async function TemplateDetailPage({ params }: { params: { id: string } }) {
+export default async function TemplateDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: template } = await supabase
     .from('templates')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!template) notFound()
@@ -17,7 +18,7 @@ export default async function TemplateDetailPage({ params }: { params: { id: str
   const { data: businesses } = await supabase
     .from('businesses')
     .select('id, name, industry')
-    .eq('template_id', params.id)
+    .eq('template_id', id)
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
