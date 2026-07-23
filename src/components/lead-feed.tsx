@@ -82,12 +82,17 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
     setUpdating(true)
     const supabase = createClient()
     const now = new Date().toISOString()
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('leads')
       .update({ status: to, status_updated_at: now })
       .eq('id', lead.id)
       .select()
       .single()
+    // Fallback if status_updated_at column doesn't exist yet
+    if (error) {
+      const res = await supabase.from('leads').update({ status: to }).eq('id', lead.id).select().single()
+      data = res.data; error = res.error
+    }
     if (!error && data) setLead({ ...lead, status: data.status, status_updated_at: now })
     setUpdating(false)
   }
@@ -138,22 +143,21 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
       {open && (
         <div className="border-t border-slate-700/50 divide-y divide-slate-700/40">
 
-          {/* Status actions */}
-          <div className="px-5 py-4">
-            <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-3">Update status</p>
-            <div className="flex flex-wrap gap-2">
-              {availableActions.map(({ to, label, icon: Icon, style }) => (
-                <button
-                  key={to}
-                  onClick={() => updateStatus(to)}
-                  disabled={updating}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-40 ${style}`}
-                >
-                  <Icon size={11} />
-                  {label}
-                </button>
-              ))}
-            </div>
+          {/* Status selector */}
+          <div className="px-5 py-3.5 flex items-center gap-3">
+            <span className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">Status</span>
+            <select
+              value={lead.status}
+              disabled={updating}
+              onChange={e => updateStatus(e.target.value as Status)}
+              className="bg-[#0b1120] border border-slate-700/50 text-slate-200 text-xs font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:border-slate-500 disabled:opacity-50 cursor-pointer"
+            >
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="closed">Closed / Won</option>
+              <option value="disqualified">Disqualified</option>
+            </select>
+            {updating && <span className="text-slate-600 text-xs">Saving…</span>}
           </div>
 
           {/* Summary */}

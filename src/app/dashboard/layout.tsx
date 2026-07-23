@@ -21,9 +21,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { count: newLeadCount } = await newLeadsQuery
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0b1120]">
+    <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar user={user} profile={profile} newLeadCount={newLeadCount ?? 0} />
-      <main className="flex-1 overflow-y-auto bg-[#0b1120]">
+      <main className="flex-1 overflow-y-auto bg-background">
         {children}
       </main>
     </div>
