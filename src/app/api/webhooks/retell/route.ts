@@ -136,11 +136,11 @@ Respond with only valid JSON, no markdown.`
   }
 
   const data = await res.json()
-  console.log('Anthropic response:', JSON.stringify(data).substring(0, 500))
   try {
-    return JSON.parse(data.content[0].text)
+    const raw = data.content[0].text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
+    return JSON.parse(raw)
   } catch (e) {
-    console.error('JSON parse error:', e, data)
+    console.error('JSON parse error:', e, data.content?.[0]?.text)
     return null
   }
 }
