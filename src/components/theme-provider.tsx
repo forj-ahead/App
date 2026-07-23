@@ -1,29 +1,12 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-
-type Theme = 'dark' | 'light'
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({ theme: 'dark', toggle: () => {} })
+import { useEffect } from 'react'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark')
-
   useEffect(() => {
-    const stored = localStorage.getItem('theme') as Theme | null
-    if (stored) apply(stored)
+    localStorage.removeItem('theme')
+    document.documentElement.setAttribute('data-theme', 'dark')
   }, [])
 
-  function apply(t: Theme) {
-    setTheme(t)
-    document.documentElement.setAttribute('data-theme', t)
-    localStorage.setItem('theme', t)
-  }
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggle: () => apply(theme === 'dark' ? 'light' : 'dark') }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return <>{children}</>
 }
-
-export const useTheme = () => useContext(ThemeContext)
