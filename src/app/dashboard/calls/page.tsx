@@ -31,28 +31,28 @@ export default async function CallsPage() {
     <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-8">
         <h1 className="text-lg font-semibold text-white">Calls</h1>
-        <p className="text-zinc-500 text-sm mt-0.5">
+        <p className="text-slate-400 text-sm mt-0.5">
           {isAdmin ? 'All inbound calls across every client' : 'Every inbound call, including unscored ones'}
         </p>
       </div>
 
       {!calls?.length ? (
-        <div className="flex flex-col items-center justify-center py-24 border border-zinc-800 rounded-lg">
-          <div className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center mb-4">
-            <Phone size={16} className="text-zinc-700" />
+        <div className="flex flex-col items-center justify-center py-24 border border-slate-700/50 rounded-lg">
+          <div className="w-10 h-10 rounded-full border border-slate-700/50 flex items-center justify-center mb-4">
+            <Phone size={16} className="text-slate-500" />
           </div>
-          <p className="text-zinc-500 text-sm font-medium">No calls yet</p>
-          <p className="text-zinc-700 text-xs mt-1">Calls appear here after Maya answers your first call</p>
+          <p className="text-slate-400 text-sm font-medium">No calls yet</p>
+          <p className="text-slate-500 text-xs mt-1">Calls appear here after Maya answers your first call</p>
         </div>
       ) : (
-        <div className="border border-zinc-800 rounded-lg divide-y divide-zinc-800/80 overflow-hidden">
+        <div className="border border-slate-700/50 rounded-lg divide-y divide-slate-700/40 overflow-hidden">
           {calls.map(call => {
             const lead = (call as any).leads
             const biz = (call as any).businesses
             const score = lead?.score
 
             return (
-              <div key={call.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-zinc-800/40 transition-colors">
+              <div key={call.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-slate-700/20 transition-colors">
                 {lead ? (
                   <span className={`text-xs font-semibold tabular-nums w-8 text-center ${
                     score >= 8 ? 'text-emerald-400' :
@@ -62,7 +62,7 @@ export default async function CallsPage() {
                   </span>
                 ) : (
                   <div className="w-8 flex justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a2235]" />
                   </div>
                 )}
 
@@ -72,28 +72,28 @@ export default async function CallsPage() {
                       {lead?.caller_name ?? call.caller_number}
                     </span>
                     {lead?.caller_name && (
-                      <span className="text-zinc-700 text-xs font-mono">{call.caller_number}</span>
+                      <span className="text-slate-500 text-xs font-mono">{call.caller_number}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    {lead?.service_requested && <p className="text-zinc-600 text-xs truncate">{lead.service_requested}</p>}
+                    {lead?.service_requested && <p className="text-slate-500 text-xs truncate">{lead.service_requested}</p>}
                     {isAdmin && biz?.name && <span className="text-zinc-800 text-xs">· {biz.name}</span>}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 flex-shrink-0">
-                  <div className="flex items-center gap-1 text-zinc-700 text-xs">
+                  <div className="flex items-center gap-1 text-slate-500 text-xs">
                     <Clock size={11} />
                     {fmt(call.duration_seconds)}
                   </div>
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
                     lead
                       ? 'text-blue-400 bg-blue-500/8 border-blue-500/15'
-                      : 'text-zinc-700 bg-white/3 border-white/8'
+                      : 'text-slate-500 bg-white/3 border-white/8'
                   }`}>
                     {lead ? 'Scored' : 'Unscored'}
                   </span>
-                  <p className="text-zinc-700 text-xs tabular-nums">
+                  <p className="text-slate-500 text-xs tabular-nums">
                     {new Date(call.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </p>
                 </div>

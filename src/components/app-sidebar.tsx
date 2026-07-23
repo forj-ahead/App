@@ -40,24 +40,24 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
   }
 
   return (
-    <aside className="w-52 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#0d0d0f] border-r border-white/[0.06]">
+    <aside className="w-52 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#080e1a] border-r border-slate-800/60">
       {/* Logo */}
-      <div className="h-14 px-4 flex items-center border-b border-white/[0.06]">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <Zap size={13} className="text-white" fill="white" />
+      <div className="h-14 px-4 flex items-center border-b border-slate-800/60">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <Zap size={14} className="text-white" fill="white" />
           </div>
           <span className="text-white font-semibold text-sm tracking-tight">Forj</span>
         </div>
         {isAdmin && (
-          <span className="ml-auto text-[10px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded">
+          <span className="ml-auto text-[10px] font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/25 px-1.5 py-0.5 rounded">
             Admin
           </span>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5">
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
         {nav.map(({ href, label, icon: Icon, exact }) => {
           const active = isActive(href, exact)
           return (
@@ -67,11 +67,11 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
                 active
-                  ? 'bg-white/8 text-white font-medium'
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 font-normal'
+                  ? 'bg-blue-500/15 text-blue-300 font-medium'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-normal'
               )}
             >
-              <Icon size={14} className={active ? 'text-white' : 'text-zinc-600'} />
+              <Icon size={14} className={active ? 'text-blue-400' : 'text-slate-600'} />
               {label}
             </Link>
           )
@@ -79,8 +79,8 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
 
         {isAdmin && (
           <>
-            <div className="pt-4 pb-1 px-3">
-              <span className="text-[10px] font-medium text-zinc-700 uppercase tracking-wider">Client view</span>
+            <div className="pt-4 pb-1.5 px-3">
+              <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Client view</span>
             </div>
             {clientNav.map(({ href, label, icon: Icon, exact }) => (
               <Link
@@ -89,11 +89,11 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
                   isActive(href, exact)
-                    ? 'bg-white/8 text-white font-medium'
-                    : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/5 font-normal'
+                    ? 'bg-blue-500/15 text-blue-300 font-medium'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/60'
                 )}
               >
-                <Icon size={14} className="text-zinc-700" />
+                <Icon size={14} className="text-slate-700" />
                 {label}
               </Link>
             ))}
@@ -102,13 +102,13 @@ export function AppSidebar({ user, profile }: AppSidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 py-3 border-t border-white/[0.06]">
+      <div className="px-2 py-3 border-t border-slate-800/60">
         <div className="px-3 py-1.5 mb-1">
-          <p className="text-zinc-600 text-xs truncate">{user?.email}</p>
+          <p className="text-slate-600 text-xs truncate">{user?.email}</p>
         </div>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-colors"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm text-slate-500 hover:text-slate-300 hover:bg-slate-800/60 transition-colors"
         >
           <LogOut size={14} />
           Sign out

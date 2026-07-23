@@ -38,12 +38,12 @@ export default function LoginPage() {
             <span className="text-white font-semibold text-sm">Forj</span>
           </div>
           <h1 className="text-xl font-semibold text-white mb-1">Sign in</h1>
-          <p className="text-zinc-500 text-sm">Enter your credentials to continue</p>
+          <p className="text-slate-400 text-sm">Enter your credentials to continue</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs" htmlFor="email">Email</Label>
+            <Label className="text-slate-400 text-xs" htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -51,11 +51,11 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 h-9 text-sm"
+              className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 h-9 text-sm"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-xs" htmlFor="password">Password</Label>
+            <Label className="text-slate-400 text-xs" htmlFor="password">Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -64,12 +64,12 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 h-9 text-sm pr-9"
+                className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 h-9 text-sm pr-9"
               />
               <button
                 type="button"
                 onClick={() => setShow(v => !v)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400 transition-colors"
                 tabIndex={-1}
               >
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -86,14 +86,14 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-9 bg-white hover:bg-zinc-100 text-black font-medium text-sm transition-colors"
+            className="w-full h-9 bg-white hover:bg-slate-100 text-black font-medium text-sm transition-colors"
           >
             {loading ? 'Signing in…' : 'Continue'}
           </Button>
         </form>
 
-        <p className="text-zinc-700 text-xs mt-6 text-center">
-          Need access? <a href="mailto:james@forjahead.com" className="text-zinc-500 hover:text-zinc-300 transition-colors">Contact james@forjahead.com</a>
+        <p className="text-slate-500 text-xs mt-6 text-center">
+          Need access? <a href="mailto:james@forjahead.com" className="text-slate-400 hover:text-slate-300 transition-colors">Contact james@forjahead.com</a>
         </p>
       </div>
     </div>

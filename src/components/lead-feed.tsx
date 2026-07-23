@@ -1,20 +1,34 @@
 'use client'
 
-import { useState } from 'react'
-import { Phone, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal } from 'lucide-react'
 import type { Lead } from '@/lib/types'
 
 function scoreColor(s: number) {
-  if (s >= 8) return { text: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' }
-  if (s >= 6) return { text: 'text-amber-400',   bg: 'bg-amber-500/10  border-amber-500/20'  }
-  return          { text: 'text-red-400',         bg: 'bg-red-500/10    border-red-500/20'    }
+  if (s >= 8) return { text: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25' }
+  if (s >= 6) return { text: 'text-amber-400',   bg: 'bg-amber-500/15  border-amber-500/25'  }
+  return          { text: 'text-red-400',         bg: 'bg-red-500/15    border-red-500/25'    }
 }
 
 function scoreLabel(s: number) {
-  if (s >= 8) return 'Hot lead'
-  if (s >= 6) return 'Warm lead'
-  if (s >= 4) return 'Cool lead'
-  return 'Not qualified'
+  if (s >= 9) return 'Hot'
+  if (s >= 7) return 'Warm'
+  if (s >= 5) return 'Cool'
+  return 'Cold'
+}
+
+function StatusPill({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    new:          'text-blue-300  bg-blue-500/10  border-blue-500/25',
+    contacted:    'text-purple-300 bg-purple-500/10 border-purple-500/25',
+    closed:       'text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
+    disqualified: 'text-slate-500  bg-slate-800/50 border-slate-700/50',
+  }
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wide ${styles[status] ?? ''}`}>
+      {status}
+    </span>
+  )
 }
 
 function LeadRow({ lead }: { lead: Lead }) {
@@ -27,92 +41,73 @@ function LeadRow({ lead }: { lead: Lead }) {
   })
 
   return (
-    <div className={`rounded-lg border transition-colors ${open ? 'border-zinc-700 bg-zinc-900/60' : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'}`}>
-      {/* Row — always visible */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full text-left px-4 py-3.5 flex items-center gap-4"
-      >
-        {/* Score */}
-        <div className={`flex-shrink-0 flex flex-col items-center justify-center w-11 h-11 rounded-lg border ${bg}`}>
-          <span className={`text-base font-bold tabular-nums leading-none ${text}`}>{lead.score}</span>
+    <div className={`rounded-xl border transition-all ${open ? 'border-slate-600 bg-[#111827]' : 'border-slate-700/50 bg-[#111827]/60 hover:border-slate-600 hover:bg-[#111827]'}`}>
+      <button onClick={() => setOpen(!open)} className="w-full text-left px-5 py-4 flex items-center gap-4">
+        {/* Score badge */}
+        <div className={`flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl border ${bg}`}>
+          <span className={`text-lg font-bold tabular-nums leading-none ${text}`}>{lead.score}</span>
           <span className={`text-[9px] font-medium opacity-50 ${text}`}>/10</span>
         </div>
 
-        {/* Main info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-white text-sm font-medium">{lead.caller_name ?? 'Unknown caller'}</span>
-            <span className="text-zinc-700 text-xs font-mono">{lead.caller_number}</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-white text-sm font-semibold">{lead.caller_name ?? 'Unknown caller'}</span>
+            <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
           </div>
-          <p className="text-zinc-400 text-xs truncate">{lead.service_requested ?? 'No service identified'}</p>
+          <p className="text-slate-400 text-xs truncate">{lead.service_requested ?? 'No service identified'}</p>
         </div>
 
-        {/* Right side */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={`text-[10px] font-medium ${text}`}>{scoreLabel(lead.score)}</span>
-          <span className="text-zinc-700 text-xs tabular-nums">{time}</span>
-          {open
-            ? <ChevronUp size={13} className="text-zinc-700" />
-            : <ChevronDown size={13} className="text-zinc-700" />
-          }
+          <span className={`text-xs font-semibold ${text}`}>{scoreLabel(lead.score)}</span>
+          <StatusPill status={lead.status} />
+          <span className="text-slate-600 text-xs tabular-nums hidden sm:block">{time}</span>
+          {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>
 
-      {/* Expanded detail */}
       {open && (
-        <div className="border-t border-zinc-800 divide-y divide-white/[0.04]">
-          {/* Summary */}
+        <div className="border-t border-slate-700/50 divide-y divide-slate-700/40">
           {lead.summary && (
-            <div className="px-4 py-4">
-              <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-2">What they need</p>
-              <p className="text-zinc-200 text-sm leading-relaxed">{lead.summary}</p>
+            <div className="px-5 py-4">
+              <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-2">What they need</p>
+              <p className="text-slate-200 text-sm leading-relaxed">{lead.summary}</p>
             </div>
           )}
-
-          {/* Score reasoning */}
           {lead.score_reasoning && (
-            <div className="px-4 py-4">
-              <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-2">Why this score</p>
-              <p className="text-zinc-400 text-sm leading-relaxed">{lead.score_reasoning}</p>
+            <div className="px-5 py-4">
+              <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Score reasoning</p>
+              <p className="text-slate-400 text-sm leading-relaxed">{lead.score_reasoning}</p>
             </div>
           )}
-
-          {/* Call details */}
           {call && (
-            <div className="px-4 py-4">
+            <div className="px-5 py-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Call transcript</p>
+                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">Transcript</p>
                 {call.duration_seconds && (
-                  <span className="flex items-center gap-1 text-zinc-700 text-xs">
+                  <span className="flex items-center gap-1 text-slate-600 text-xs">
                     <Clock size={10} />
-                    {call.duration_seconds < 60
-                      ? `${call.duration_seconds}s`
-                      : `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`
-                    }
+                    {call.duration_seconds < 60 ? `${call.duration_seconds}s` : `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`}
                   </span>
                 )}
               </div>
               {call.transcript ? (
-                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-white/[0.02] border border-zinc-800 rounded-md p-3 max-h-56 overflow-y-auto">
+                <pre className="text-slate-400 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-[#0b1120] border border-slate-700/50 rounded-lg p-3.5 max-h-56 overflow-y-auto">
                   {call.transcript}
                 </pre>
               ) : (
-                <p className="text-zinc-700 text-xs">No transcript available</p>
+                <p className="text-slate-600 text-xs">No transcript available</p>
               )}
             </div>
           )}
-
-          {/* Actions */}
-          <div className="px-4 py-3 flex items-center gap-2">
+          <div className="px-5 py-3.5 flex items-center gap-3">
             <a
               href={`tel:${lead.caller_number}`}
-              className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-medium px-3 py-1.5 rounded-md transition-colors"
+              className="inline-flex items-center gap-1.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors"
             >
               <Phone size={11} />
               Call {lead.caller_name ?? 'back'}
             </a>
-            <span className="text-zinc-700 text-xs">{lead.caller_number}</span>
+            <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
           </div>
         </div>
       )}
@@ -120,24 +115,118 @@ function LeadRow({ lead }: { lead: Lead }) {
   )
 }
 
-export function LeadFeed({ leads }: { leads: Lead[] }) {
-  if (leads.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 border border-zinc-800 rounded-lg">
-        <div className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center mb-3">
-          <Phone size={16} className="text-zinc-700" />
-        </div>
-        <p className="text-zinc-500 text-sm font-medium">No leads yet</p>
-        <p className="text-zinc-700 text-xs mt-1">Leads appear here after Maya qualifies a call</p>
-      </div>
-    )
-  }
+const SCORE_FILTERS = [
+  { label: 'All scores', min: 0 },
+  { label: '6+', min: 6 },
+  { label: '7+', min: 7 },
+  { label: '8+', min: 8 },
+  { label: '9–10', min: 9 },
+]
 
-  const sorted = [...leads].sort((a, b) => b.score - a.score)
+const STATUS_FILTERS = ['all', 'new', 'contacted', 'closed', 'disqualified']
+
+export function LeadFeed({ leads }: { leads: Lead[] }) {
+  const [minScore, setMinScore] = useState(0)
+  const [status, setStatus] = useState('all')
+  const [sort, setSort] = useState<'score' | 'date'>('score')
+
+  const filtered = useMemo(() => {
+    let out = leads.filter(l => l.score >= minScore)
+    if (status !== 'all') out = out.filter(l => l.status === status)
+    out = [...out].sort((a, b) =>
+      sort === 'score'
+        ? b.score - a.score
+        : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    return out
+  }, [leads, minScore, status, sort])
 
   return (
-    <div className="space-y-1.5">
-      {sorted.map(lead => <LeadRow key={lead.id} lead={lead} />)}
+    <div>
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <SlidersHorizontal size={13} />
+          <span className="text-xs font-medium">Filter</span>
+        </div>
+
+        {/* Score filter */}
+        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1">
+          {SCORE_FILTERS.map(f => (
+            <button
+              key={f.min}
+              onClick={() => setMinScore(f.min)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                minScore === f.min
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Status filter */}
+        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1">
+          {STATUS_FILTERS.map(s => (
+            <button
+              key={s}
+              onClick={() => setStatus(s)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
+                status === s
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort */}
+        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1 ml-auto">
+          {(['score', 'date'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
+                sort === s
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {s === 'score' ? 'By score' : 'By date'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Count */}
+      <p className="text-slate-600 text-xs mb-3">
+        {filtered.length} of {leads.length} lead{leads.length !== 1 ? 's' : ''}
+      </p>
+
+      {leads.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-slate-700/50 rounded-xl bg-[#111827]/40">
+          <div className="w-10 h-10 rounded-full border border-slate-700/50 flex items-center justify-center mb-3">
+            <Phone size={16} className="text-slate-700" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">No leads yet</p>
+          <p className="text-slate-600 text-xs mt-1">Leads appear here after Maya qualifies a call</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 border border-slate-700/50 rounded-xl bg-[#111827]/40">
+          <p className="text-slate-400 text-sm font-medium">No leads match these filters</p>
+          <button onClick={() => { setMinScore(0); setStatus('all') }} className="text-blue-400 text-xs mt-2 hover:text-blue-300 transition-colors">
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(lead => <LeadRow key={lead.id} lead={lead} />)}
+        </div>
+      )}
     </div>
   )
 }
