@@ -34,10 +34,10 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-4 gap-3 mb-8">
         {stats.map(({ label, value, icon: Icon, href }) => (
-          <Link key={label} href={href} className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] rounded-lg p-4 transition-colors group">
+          <Link key={label} href={href} className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg p-4 transition-colors group">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-zinc-600 text-xs font-medium">{label}</p>
-              <Icon size={13} className="text-zinc-700 group-hover:text-zinc-500 transition-colors" />
+              <p className="text-zinc-500 text-xs font-medium">{label}</p>
+              <Icon size={13} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
             </div>
             <p className="text-2xl font-semibold text-white tabular-nums">{value}</p>
           </Link>
@@ -45,11 +45,11 @@ export default async function AdminPage() {
       </div>
 
       <div className="flex gap-2 mb-10">
-        <Link href="/admin/clients/new" className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+        <Link href="/admin/clients/new" className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-200 text-black text-xs font-semibold px-4 py-2 rounded-md transition-colors">
           <Plus size={13} />
           Onboard client
         </Link>
-        <Link href="/admin/templates/new" className="inline-flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] text-zinc-300 text-xs font-medium px-3.5 py-2 rounded-md transition-colors">
+        <Link href="/admin/templates/new" className="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-md transition-colors">
           <Plus size={13} />
           New template
         </Link>
@@ -65,9 +65,9 @@ export default async function AdminPage() {
             <p className="text-zinc-600 text-sm">No clients yet</p>
           </div>
         ) : (
-          <div className="border border-white/[0.06] rounded-lg divide-y divide-white/[0.04] overflow-hidden">
+          <div className="border border-zinc-800 rounded-lg divide-y divide-zinc-800/80 overflow-hidden bg-zinc-900/40">
             {recentClients.map(biz => (
-              <Link key={biz.id} href={`/admin/clients/${biz.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
+              <Link key={biz.id} href={`/admin/clients/${biz.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/60 transition-colors">
                 <div className="w-7 h-7 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-medium text-xs">{biz.name[0]}</span>
                 </div>

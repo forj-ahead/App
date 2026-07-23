@@ -37,22 +37,22 @@ export default async function CallsPage() {
       </div>
 
       {!calls?.length ? (
-        <div className="flex flex-col items-center justify-center py-24 border border-white/[0.06] rounded-lg">
-          <div className="w-10 h-10 rounded-full border border-white/[0.06] flex items-center justify-center mb-4">
+        <div className="flex flex-col items-center justify-center py-24 border border-zinc-800 rounded-lg">
+          <div className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center mb-4">
             <Phone size={16} className="text-zinc-700" />
           </div>
           <p className="text-zinc-500 text-sm font-medium">No calls yet</p>
           <p className="text-zinc-700 text-xs mt-1">Calls appear here after Maya answers your first call</p>
         </div>
       ) : (
-        <div className="border border-white/[0.06] rounded-lg divide-y divide-white/[0.04] overflow-hidden">
+        <div className="border border-zinc-800 rounded-lg divide-y divide-zinc-800/80 overflow-hidden">
           {calls.map(call => {
             const lead = (call as any).leads
             const biz = (call as any).businesses
             const score = lead?.score
 
             return (
-              <div key={call.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-white/[0.02] transition-colors">
+              <div key={call.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-zinc-800/40 transition-colors">
                 {lead ? (
                   <span className={`text-xs font-semibold tabular-nums w-8 text-center ${
                     score >= 8 ? 'text-emerald-400' :

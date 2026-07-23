@@ -21,11 +21,11 @@ export function StatsBar({ stats }: StatsBarProps) {
           key={label}
           className={`rounded-lg border px-5 py-4 ${
             accent
-              ? 'bg-blue-500/5 border-blue-500/15'
-              : 'bg-white/[0.02] border-white/[0.06]'
+              ? 'bg-blue-500/10 border-blue-500/25'
+              : 'bg-zinc-900 border-zinc-800'
           }`}
         >
-          <p className={`text-xs font-medium mb-3 ${accent ? 'text-blue-400/70' : 'text-zinc-600'}`}>
+          <p className={`text-xs font-medium mb-3 ${accent ? 'text-blue-400' : 'text-zinc-500'}`}>
             {label}
           </p>
           <p className={`text-3xl font-bold tabular-nums tracking-tight ${accent ? 'text-blue-400' : 'text-white'}`}>

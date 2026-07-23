@@ -27,7 +27,7 @@ function LeadRow({ lead }: { lead: Lead }) {
   })
 
   return (
-    <div className={`rounded-lg border transition-colors ${open ? 'border-white/10' : 'border-white/[0.06] hover:border-white/[0.1]'}`}>
+    <div className={`rounded-lg border transition-colors ${open ? 'border-zinc-700 bg-zinc-900/60' : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'}`}>
       {/* Row — always visible */}
       <button
         onClick={() => setOpen(!open)}
@@ -61,7 +61,7 @@ function LeadRow({ lead }: { lead: Lead }) {
 
       {/* Expanded detail */}
       {open && (
-        <div className="border-t border-white/[0.06] divide-y divide-white/[0.04]">
+        <div className="border-t border-zinc-800 divide-y divide-white/[0.04]">
           {/* Summary */}
           {lead.summary && (
             <div className="px-4 py-4">
@@ -94,7 +94,7 @@ function LeadRow({ lead }: { lead: Lead }) {
                 )}
               </div>
               {call.transcript ? (
-                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-white/[0.02] border border-white/[0.05] rounded-md p-3 max-h-56 overflow-y-auto">
+                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-white/[0.02] border border-zinc-800 rounded-md p-3 max-h-56 overflow-y-auto">
                   {call.transcript}
                 </pre>
               ) : (
@@ -123,8 +123,8 @@ function LeadRow({ lead }: { lead: Lead }) {
 export function LeadFeed({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 border border-white/[0.06] rounded-lg">
-        <div className="w-10 h-10 rounded-full border border-white/[0.06] flex items-center justify-center mb-3">
+      <div className="flex flex-col items-center justify-center py-20 border border-zinc-800 rounded-lg">
+        <div className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center mb-3">
           <Phone size={16} className="text-zinc-700" />
         </div>
         <p className="text-zinc-500 text-sm font-medium">No leads yet</p>
