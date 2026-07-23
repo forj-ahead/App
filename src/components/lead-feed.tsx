@@ -7,6 +7,26 @@ import type { Lead } from '@/lib/types'
 
 type Status = 'new' | 'contacted' | 'closed' | 'disqualified'
 
+function timeAgo(date: string) {
+  const diff = Date.now() - new Date(date).getTime()
+  const mins = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  if (mins < 60) return `${mins}m ago`
+  if (hours < 24) return `${hours}h ago`
+  return `${days}d ago`
+}
+
+function waitingUrgency(lead: Lead): { label: string; className: string } | null {
+  if (lead.status !== 'new') return null
+  const since = lead.status_updated_at ?? lead.created_at
+  const hours = (Date.now() - new Date(since).getTime()) / 3600000
+  if (hours >= 48) return { label: `Waiting ${timeAgo(since)}`, className: 'text-red-400' }
+  if (hours >= 24) return { label: `Waiting ${timeAgo(since)}`, className: 'text-amber-400' }
+  if (hours >= 4)  return { label: `Waiting ${timeAgo(since)}`, className: 'text-slate-400' }
+  return null
+}
+
 function scoreColor(s: number) {
   if (s >= 8) return { text: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25' }
   if (s >= 6) return { text: 'text-amber-400',   bg: 'bg-amber-500/15  border-amber-500/25'  }
@@ -61,13 +81,14 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
   async function updateStatus(to: Status) {
     setUpdating(true)
     const supabase = createClient()
+    const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('leads')
-      .update({ status: to })
+      .update({ status: to, status_updated_at: now })
       .eq('id', lead.id)
       .select()
       .single()
-    if (!error && data) setLead({ ...lead, status: data.status })
+    if (!error && data) setLead({ ...lead, status: data.status, status_updated_at: now })
     setUpdating(false)
   }
 
@@ -107,6 +128,7 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className={`text-xs font-semibold ${text}`}>{scoreLabel(lead.score)}</span>
           <StatusPill status={lead.status as Status} />
+          {(() => { const u = waitingUrgency(lead); return u ? <span className={`text-[10px] font-medium ${u.className}`}>{u.label}</span> : null })()}
           <span className="text-slate-600 text-xs tabular-nums hidden sm:block">{time}</span>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
