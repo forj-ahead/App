@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
+
+type Status = 'new' | 'contacted' | 'closed' | 'disqualified'
 
 function scoreColor(s: number) {
   if (s >= 8) return { text: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25' }
@@ -17,22 +20,34 @@ function scoreLabel(s: number) {
   return 'Cold'
 }
 
-function StatusPill({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    new:          'text-blue-300  bg-blue-500/10  border-blue-500/25',
-    contacted:    'text-purple-300 bg-purple-500/10 border-purple-500/25',
-    closed:       'text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
-    disqualified: 'text-slate-500  bg-slate-800/50 border-slate-700/50',
-  }
+const STATUS_META: Record<Status, { label: string; color: string }> = {
+  new:          { label: 'New',          color: 'text-blue-300  bg-blue-500/10  border-blue-500/25' },
+  contacted:    { label: 'Contacted',    color: 'text-purple-300 bg-purple-500/10 border-purple-500/25' },
+  closed:       { label: 'Closed',       color: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25' },
+  disqualified: { label: 'Disqualified', color: 'text-slate-500  bg-slate-800/50 border-slate-700/50' },
+}
+
+function StatusPill({ status }: { status: Status }) {
+  const { label, color } = STATUS_META[status] ?? STATUS_META.new
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wide ${styles[status] ?? ''}`}>
-      {status}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wide ${color}`}>
+      {label}
     </span>
   )
 }
 
-function LeadRow({ lead }: { lead: Lead }) {
+const STATUS_ACTIONS: { to: Status; label: string; icon: React.ElementType; style: string }[] = [
+  { to: 'contacted',    label: 'Mark contacted',    icon: PhoneCall, style: 'bg-purple-500/15 hover:bg-purple-500/25 border-purple-500/30 text-purple-300' },
+  { to: 'closed',       label: 'Mark closed',       icon: Check,     style: 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-300' },
+  { to: 'disqualified', label: 'Disqualify',        icon: X,         style: 'bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-400' },
+  { to: 'new',          label: 'Reopen',            icon: RefreshCw, style: 'bg-blue-500/15 hover:bg-blue-500/25 border-blue-500/30 text-blue-300' },
+]
+
+function LeadRow({ lead: initialLead }: { lead: Lead }) {
   const [open, setOpen] = useState(false)
+  const [lead, setLead] = useState(initialLead)
+  const [updating, setUpdating] = useState(false)
+
   const { text, bg } = scoreColor(lead.score)
   const call = (lead as any).calls
 
@@ -40,10 +55,26 @@ function LeadRow({ lead }: { lead: Lead }) {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   })
 
+  async function updateStatus(to: Status) {
+    setUpdating(true)
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('leads')
+      .update({ status: to })
+      .eq('id', lead.id)
+      .select()
+      .single()
+    if (!error && data) setLead({ ...lead, status: data.status })
+    setUpdating(false)
+  }
+
+  // Show actions that aren't the current status
+  const availableActions = STATUS_ACTIONS.filter(a => a.to !== lead.status)
+
   return (
     <div className={`rounded-xl border transition-all ${open ? 'border-slate-600 bg-[#111827]' : 'border-slate-700/50 bg-[#111827]/60 hover:border-slate-600 hover:bg-[#111827]'}`}>
+      {/* Row header */}
       <button onClick={() => setOpen(!open)} className="w-full text-left px-5 py-4 flex items-center gap-4">
-        {/* Score badge */}
         <div className={`flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl border ${bg}`}>
           <span className={`text-lg font-bold tabular-nums leading-none ${text}`}>{lead.score}</span>
           <span className={`text-[9px] font-medium opacity-50 ${text}`}>/10</span>
@@ -59,26 +90,51 @@ function LeadRow({ lead }: { lead: Lead }) {
 
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className={`text-xs font-semibold ${text}`}>{scoreLabel(lead.score)}</span>
-          <StatusPill status={lead.status} />
+          <StatusPill status={lead.status as Status} />
           <span className="text-slate-600 text-xs tabular-nums hidden sm:block">{time}</span>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>
 
+      {/* Expanded */}
       {open && (
         <div className="border-t border-slate-700/50 divide-y divide-slate-700/40">
+
+          {/* Status actions */}
+          <div className="px-5 py-4">
+            <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-3">Update status</p>
+            <div className="flex flex-wrap gap-2">
+              {availableActions.map(({ to, label, icon: Icon, style }) => (
+                <button
+                  key={to}
+                  onClick={() => updateStatus(to)}
+                  disabled={updating}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-40 ${style}`}
+                >
+                  <Icon size={11} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary */}
           {lead.summary && (
             <div className="px-5 py-4">
               <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-2">What they need</p>
               <p className="text-slate-200 text-sm leading-relaxed">{lead.summary}</p>
             </div>
           )}
+
+          {/* Score reasoning */}
           {lead.score_reasoning && (
             <div className="px-5 py-4">
               <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Score reasoning</p>
               <p className="text-slate-400 text-sm leading-relaxed">{lead.score_reasoning}</p>
             </div>
           )}
+
+          {/* Transcript */}
           {call && (
             <div className="px-5 py-4">
               <div className="flex items-center justify-between mb-2">
@@ -99,15 +155,21 @@ function LeadRow({ lead }: { lead: Lead }) {
               )}
             </div>
           )}
+
+          {/* Call back */}
           <div className="px-5 py-3.5 flex items-center gap-3">
             <a
               href={`tel:${lead.caller_number}`}
+              onClick={() => lead.status === 'new' && updateStatus('contacted')}
               className="inline-flex items-center gap-1.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors"
             >
               <Phone size={11} />
               Call {lead.caller_name ?? 'back'}
             </a>
             <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
+            {lead.status === 'new' && (
+              <span className="text-slate-600 text-[10px]">· Tapping call will auto-mark as contacted</span>
+            )}
           </div>
         </div>
       )}
@@ -116,14 +178,48 @@ function LeadRow({ lead }: { lead: Lead }) {
 }
 
 const SCORE_FILTERS = [
-  { label: 'All scores', min: 0 },
+  { label: 'All', min: 0 },
   { label: '6+', min: 6 },
   { label: '7+', min: 7 },
   { label: '8+', min: 8 },
   { label: '9–10', min: 9 },
 ]
 
-const STATUS_FILTERS = ['all', 'new', 'contacted', 'closed', 'disqualified']
+const STATUS_FILTERS: { label: string; value: string }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'New', value: 'new' },
+  { label: 'Contacted', value: 'contacted' },
+  { label: 'Closed', value: 'closed' },
+  { label: 'Disqualified', value: 'disqualified' },
+]
+
+function FilterGroup({ options, value, onChange }: {
+  options: { label: string; value?: string; min?: number }[]
+  value: string | number
+  onChange: (v: any) => void
+}) {
+  return (
+    <div className="flex items-center gap-0.5 bg-[#0b1120] border border-slate-700/50 rounded-lg p-1">
+      {options.map(opt => {
+        const v = opt.value ?? opt.min
+        const active = value === v
+        return (
+          <button
+            key={String(v)}
+            onClick={() => onChange(v)}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              active
+                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 export function LeadFeed({ leads }: { leads: Lead[] }) {
   const [minScore, setMinScore] = useState(0)
@@ -133,78 +229,38 @@ export function LeadFeed({ leads }: { leads: Lead[] }) {
   const filtered = useMemo(() => {
     let out = leads.filter(l => l.score >= minScore)
     if (status !== 'all') out = out.filter(l => l.status === status)
-    out = [...out].sort((a, b) =>
+    return [...out].sort((a, b) =>
       sort === 'score'
         ? b.score - a.score
         : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
-    return out
   }, [leads, minScore, status, sort])
 
   return (
     <div>
-      {/* Filter bar */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <div className="flex items-center gap-1.5 text-slate-500">
-          <SlidersHorizontal size={13} />
-          <span className="text-xs font-medium">Filter</span>
-        </div>
-
-        {/* Score filter */}
-        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1">
-          {SCORE_FILTERS.map(f => (
-            <button
-              key={f.min}
-              onClick={() => setMinScore(f.min)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                minScore === f.min
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Status filter */}
-        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1">
-          {STATUS_FILTERS.map(s => (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
-                status === s
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {/* Sort */}
-        <div className="flex items-center gap-1 bg-[#111827] border border-slate-700/50 rounded-lg p-1 ml-auto">
-          {(['score', 'date'] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
-                sort === s
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {s === 'score' ? 'By score' : 'By date'}
-            </button>
-          ))}
+      {/* Filters */}
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
+        <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5">
+          <SlidersHorizontal size={12} /> Filter
+        </span>
+        <FilterGroup options={SCORE_FILTERS.map(f => ({ label: f.label, min: f.min }))} value={minScore} onChange={setMinScore} />
+        <FilterGroup options={STATUS_FILTERS.map(f => ({ label: f.label, value: f.value }))} value={status} onChange={setStatus} />
+        <div className="ml-auto">
+          <FilterGroup
+            options={[{ label: 'By score', value: 'score' }, { label: 'By date', value: 'date' }]}
+            value={sort}
+            onChange={setSort}
+          />
         </div>
       </div>
 
-      {/* Count */}
       <p className="text-slate-600 text-xs mb-3">
         {filtered.length} of {leads.length} lead{leads.length !== 1 ? 's' : ''}
+        {(minScore > 0 || status !== 'all') && (
+          <button onClick={() => { setMinScore(0); setStatus('all') }} className="ml-2 text-blue-400 hover:text-blue-300 transition-colors">
+            Clear filters
+          </button>
+        )}
       </p>
 
       {leads.length === 0 ? (
