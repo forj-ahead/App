@@ -1,5 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-white/[0.04] last:border-0">
+      <span className="text-zinc-500 text-sm">{label}</span>
+      <span className="text-zinc-200 text-sm font-mono">{value}</span>
+    </div>
+  )
+}
+
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -10,62 +19,60 @@ export default async function SettingsPage() {
     .eq('id', user!.id)
     .single()
 
-  const business = profile?.businesses
+  const b = profile?.businesses
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Settings</h1>
-        <p className="text-white/40 text-sm">Your business configuration</p>
+        <h1 className="text-lg font-semibold text-white">Settings</h1>
+        <p className="text-zinc-500 text-sm mt-0.5">Your business configuration</p>
       </div>
 
       <div className="space-y-4">
-        <div className="bg-[#111827] border border-white/5 rounded-xl p-6">
-          <h2 className="text-white font-semibold mb-4">Business Info</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-white/40">Name</span>
-              <span className="text-white">{business?.name ?? '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/40">Industry</span>
-              <span className="text-white">{business?.industry ?? '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/40">Phone number</span>
-              <span className="text-white font-mono">{business?.twilio_number ?? '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/40">Alert phone</span>
-              <span className="text-white font-mono">{business?.alert_phone ?? '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/40">Lead score threshold</span>
-              <span className="text-white">{business?.score_threshold ?? 7}/10</span>
-            </div>
+        <div className="border border-white/[0.06] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.01]">
+            <p className="text-zinc-400 text-xs font-medium">Business</p>
+          </div>
+          <div className="px-4">
+            <Row label="Name" value={b?.name ?? '—'} />
+            <Row label="Industry" value={b?.industry ?? '—'} />
+            <Row label="Phone number" value={b?.twilio_number ?? '—'} />
+            <Row label="Alert phone" value={b?.alert_phone ?? '—'} />
+            <Row label="Score threshold" value={`${b?.score_threshold ?? 7}/10`} />
+            <Row label="SMS alerts" value={b?.sms_alerts_enabled ? 'Enabled' : 'Disabled'} />
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-white/5 rounded-xl p-6">
-          <h2 className="text-white font-semibold mb-2">Services Offered</h2>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {business?.services_offered?.length ? business.services_offered.map((s: string) => (
-              <span key={s} className="bg-green-500/10 text-green-400 border border-green-500/20 text-xs px-3 py-1 rounded-full">{s}</span>
-            )) : <span className="text-white/30 text-sm">None configured</span>}
+        <div className="border border-white/[0.06] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.01]">
+            <p className="text-zinc-400 text-xs font-medium">Services offered</p>
+          </div>
+          <div className="px-4 py-3 flex flex-wrap gap-2">
+            {b?.services_offered?.length
+              ? b.services_offered.map((s: string) => (
+                  <span key={s} className="text-emerald-400 bg-emerald-500/8 border border-emerald-500/15 text-xs px-2.5 py-1 rounded-md">{s}</span>
+                ))
+              : <span className="text-zinc-600 text-sm">None configured</span>
+            }
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-white/5 rounded-xl p-6">
-          <h2 className="text-white font-semibold mb-2">Services Excluded</h2>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {business?.services_excluded?.length ? business.services_excluded.map((s: string) => (
-              <span key={s} className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-3 py-1 rounded-full">{s}</span>
-            )) : <span className="text-white/30 text-sm">None configured</span>}
+        <div className="border border-white/[0.06] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.01]">
+            <p className="text-zinc-400 text-xs font-medium">Services excluded</p>
+          </div>
+          <div className="px-4 py-3 flex flex-wrap gap-2">
+            {b?.services_excluded?.length
+              ? b.services_excluded.map((s: string) => (
+                  <span key={s} className="text-red-400 bg-red-500/8 border border-red-500/15 text-xs px-2.5 py-1 rounded-md">{s}</span>
+                ))
+              : <span className="text-zinc-600 text-sm">None configured</span>
+            }
           </div>
         </div>
 
-        <p className="text-white/25 text-xs text-center pt-2">
-          To update your configuration, contact james@forjahead.com
+        <p className="text-zinc-700 text-xs text-center pt-1">
+          To update configuration, contact <a href="mailto:james@forjahead.com" className="text-zinc-500 hover:text-zinc-300 transition-colors">james@forjahead.com</a>
         </p>
       </div>
     </div>

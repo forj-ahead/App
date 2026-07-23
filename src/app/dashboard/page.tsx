@@ -12,29 +12,45 @@ export default async function DashboardPage() {
     .eq('id', user!.id)
     .single()
 
+  const isAdmin = profile?.role === 'admin'
   const businessId = profile?.business_id
 
+  // Admins see all leads; clients see only their business
+  const leadsQuery = supabase
+    .from('leads')
+    .select('*, calls(*)')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (!isAdmin && businessId) {
+    leadsQuery.eq('business_id', businessId)
+  }
+
   const [leadsRes, totalLeadsRes, totalCallsRes, newLeadsRes] = await Promise.all([
-    supabase.from('leads').select('*, calls(*)').eq('business_id', businessId).order('created_at', { ascending: false }).limit(50),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
-    supabase.from('calls').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
-    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId).eq('status', 'new'),
+    leadsQuery,
+    isAdmin
+      ? supabase.from('leads').select('*', { count: 'exact', head: true })
+      : supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
+    isAdmin
+      ? supabase.from('calls').select('*', { count: 'exact', head: true })
+      : supabase.from('calls').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
+    isAdmin
+      ? supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new')
+      : supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId).eq('status', 'new'),
   ])
 
   const stats = {
     totalLeads: totalLeadsRes.count ?? 0,
     totalCalls: totalCallsRes.count ?? 0,
     newLeads: newLeadsRes.count ?? 0,
-    businessName: profile?.businesses?.name ?? '',
+    businessName: isAdmin ? 'All clients' : (profile?.businesses?.name ?? ''),
   }
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-8">
         <h1 className="text-lg font-semibold text-white">Leads</h1>
-        {profile?.businesses?.name && (
-          <p className="text-zinc-500 text-sm mt-0.5">{profile.businesses.name}</p>
-        )}
+        <p className="text-zinc-500 text-sm mt-0.5">{stats.businessName}</p>
       </div>
       <StatsBar stats={stats} />
       <div className="mt-8">
