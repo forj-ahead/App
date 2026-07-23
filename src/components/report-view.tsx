@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Download, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Download, TrendingUp, TrendingDown, Minus, ChevronDown } from 'lucide-react'
 
 interface Lead {
   id: string
@@ -61,14 +61,32 @@ function Bar({ pct, color }: { pct: number; color: string }) {
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export function ReportView({ leads, calls, period, prevLeadCount, businessName }: {
+interface Business {
+  id: string
+  name: string
+}
+
+export function ReportView({ leads, calls, period, prevLeadCount, businessName, businesses, isAdmin }: {
   leads: Lead[]
   calls: Call[]
   period: string
   prevLeadCount: number
   businessName: string
+  businesses?: Business[]
+  isAdmin?: boolean
 }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentBusiness = searchParams.get('business') ?? ''
+
+  function navigate(updates: Record<string, string | null>) {
+    const params = new URLSearchParams(searchParams.toString())
+    for (const [k, v] of Object.entries(updates)) {
+      if (v) params.set(k, v)
+      else params.delete(k)
+    }
+    router.push(`?${params.toString()}`)
+  }
 
   // ── Core stats ──────────────────────────────────────────────
   const totalCalls = calls.length
@@ -134,12 +152,29 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName }
         </div>
 
         <div className="flex items-center gap-2 print:hidden">
+          {/* Business filter */}
+          {isAdmin && businesses && businesses.length > 0 && (
+            <div className="relative">
+              <select
+                value={currentBusiness}
+                onChange={e => navigate({ business: e.target.value || null })}
+                className="appearance-none bg-[#111827] text-white text-sm border border-slate-700/50 rounded-lg pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">All clients</option>
+                {businesses.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            </div>
+          )}
+
           {/* Period selector */}
           <div className="flex items-center gap-0.5 bg-[#0b1120] border border-slate-700/50 rounded-lg p-1">
             {Object.entries(PERIOD_LABELS).map(([val, label]) => (
               <button
                 key={val}
-                onClick={() => router.push(`/dashboard/reports?period=${val}`)}
+                onClick={() => navigate({ period: val })}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   period === val
                     ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
