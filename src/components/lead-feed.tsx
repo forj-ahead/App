@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
@@ -255,6 +255,30 @@ function FilterGroup({ options, value, onChange }: {
   )
 }
 
+function exportCSV(leads: Lead[]) {
+  const rows = [
+    ['Name', 'Phone', 'Score', 'Status', 'Service Requested', 'Summary', 'Notes', 'Date'],
+    ...leads.map(l => [
+      l.caller_name ?? '',
+      l.caller_number,
+      String(l.score),
+      l.status,
+      l.service_requested ?? '',
+      l.summary ?? '',
+      l.notes ?? '',
+      new Date(l.created_at).toLocaleString(),
+    ]),
+  ]
+  const csv = rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `forj-leads-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export function LeadFeed({ leads }: { leads: Lead[] }) {
   const [minScore, setMinScore] = useState(0)
   const [status, setStatus] = useState('all')
@@ -279,12 +303,20 @@ export function LeadFeed({ leads }: { leads: Lead[] }) {
         </span>
         <FilterGroup options={SCORE_FILTERS.map(f => ({ label: f.label, min: f.min }))} value={minScore} onChange={setMinScore} />
         <FilterGroup options={STATUS_FILTERS.map(f => ({ label: f.label, value: f.value }))} value={status} onChange={setStatus} />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <FilterGroup
             options={[{ label: 'By score', value: 'score' }, { label: 'By date', value: 'date' }]}
             value={sort}
             onChange={setSort}
           />
+          <button
+            onClick={() => exportCSV(filtered)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700/50 bg-[#111827] text-slate-400 hover:text-slate-200 hover:border-slate-600 text-xs font-medium transition-colors"
+            title="Export to CSV"
+          >
+            <Download size={11} />
+            Export
+          </button>
         </div>
       </div>
 
