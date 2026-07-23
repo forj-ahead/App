@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw } from 'lucide-react'
+import { useState, useMemo, useRef } from 'react'
+import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
@@ -47,6 +47,9 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
   const [open, setOpen] = useState(false)
   const [lead, setLead] = useState(initialLead)
   const [updating, setUpdating] = useState(false)
+  const [notes, setNotes] = useState(initialLead.notes ?? '')
+  const [notesSaved, setNotesSaved] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { text, bg } = scoreColor(lead.score)
   const call = (lead as any).calls
@@ -66,6 +69,19 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
       .single()
     if (!error && data) setLead({ ...lead, status: data.status })
     setUpdating(false)
+  }
+
+  async function saveNotes(value: string) {
+    const supabase = createClient()
+    await supabase.from('leads').update({ notes: value }).eq('id', lead.id)
+    setNotesSaved(true)
+    setTimeout(() => setNotesSaved(false), 2000)
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value)
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => saveNotes(value), 1000)
   }
 
   // Show actions that aren't the current status
@@ -133,6 +149,24 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
               <p className="text-slate-400 text-sm leading-relaxed">{lead.score_reasoning}</p>
             </div>
           )}
+
+          {/* Notes */}
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <StickyNote size={11} className="text-slate-500" />
+                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">Notes</p>
+              </div>
+              {notesSaved && <span className="text-emerald-400 text-[10px]">Saved</span>}
+            </div>
+            <textarea
+              value={notes}
+              onChange={e => handleNotesChange(e.target.value)}
+              placeholder="Add notes about this lead…"
+              rows={3}
+              className="w-full bg-[#0b1120] border border-slate-700/50 rounded-lg px-3.5 py-3 text-slate-200 text-sm placeholder:text-slate-600 focus:outline-none focus:border-slate-500 resize-none leading-relaxed"
+            />
+          </div>
 
           {/* Transcript */}
           {call && (

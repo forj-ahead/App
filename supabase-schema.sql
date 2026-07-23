@@ -61,6 +61,7 @@ create table if not exists leads (
   score_reasoning text,
   summary text,
   status text not null default 'new' check (status in ('new', 'contacted', 'closed', 'disqualified')),
+  notes text,
   created_at timestamptz default now()
 );
 

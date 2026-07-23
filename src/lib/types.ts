@@ -39,6 +39,7 @@ export interface Lead {
   score_reasoning: string | null
   summary: string | null
   status: LeadStatus
+  notes: string | null
   created_at: string
   calls?: Call
 }
