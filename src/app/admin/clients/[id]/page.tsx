@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Phone, Clock, ChevronRight, Settings2 } from 'lucide-react'
+import { LeadFeed } from '@/components/lead-feed'
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, text] =
@@ -29,7 +30,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   if (!business) notFound()
 
   const [leadsRes, callsRes] = await Promise.all([
-    supabase.from('leads').select('*, calls(transcript, duration_seconds)').eq('business_id', id).order('created_at', { ascending: false }),
+    supabase.from('leads').select('*, calls(*)').eq('business_id', id).order('created_at', { ascending: false }),
     supabase.from('calls').select('*').eq('business_id', id).order('created_at', { ascending: false }),
   ])
 
@@ -93,29 +94,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <h2 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">
               Qualified Leads · {leads.length}
             </h2>
-            {leads.length === 0 ? (
-              <div className="bg-[#0D1525] border border-white/[0.06] rounded-xl px-5 py-12 text-center">
-                <p className="text-white/25 text-sm">No leads yet</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {leads.map(lead => (
-                  <div key={lead.id} className="bg-[#0D1525] border border-white/[0.06] rounded-xl px-4 py-3.5 flex items-center gap-3">
-                    <ScoreBadge score={lead.score} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm">{lead.caller_name ?? lead.caller_number}</p>
-                      <p className="text-white/35 text-xs mt-0.5 truncate">{lead.service_requested}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-white/20 text-xs">
-                        {new Date(lead.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </p>
-                      <p className="text-white/30 text-xs font-mono mt-0.5">{lead.caller_number}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <LeadFeed leads={leads} />
           </div>
 
           {/* Right column: config + recent calls */}
