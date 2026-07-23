@@ -130,11 +130,10 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
           <p className="text-slate-400 text-xs truncate">{lead.service_requested ?? 'No service identified'}</p>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={`text-xs font-semibold ${text}`}>{scoreLabel(lead.score)}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <StatusPill status={lead.status as Status} />
-          {(() => { const u = waitingUrgency(lead); return u ? <span className={`text-[10px] font-medium ${u.className}`}>{u.label}</span> : null })()}
-          <span className="text-slate-600 text-xs tabular-nums hidden sm:block">{time}</span>
+          {(() => { const u = waitingUrgency(lead); return u ? <span className={`text-[10px] font-medium hidden sm:block ${u.className}`}>{u.label}</span> : null })()}
+          <span className="text-slate-600 text-xs tabular-nums hidden md:block">{time}</span>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>
@@ -323,26 +322,30 @@ export function LeadFeed({ leads }: { leads: Lead[] }) {
   return (
     <div>
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-5 flex-wrap">
-        <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5">
-          <SlidersHorizontal size={12} /> Filter
-        </span>
-        <FilterGroup options={SCORE_FILTERS.map(f => ({ label: f.label, min: f.min }))} value={minScore} onChange={setMinScore} />
-        <FilterGroup options={STATUS_FILTERS.map(f => ({ label: f.label, value: f.value }))} value={status} onChange={setStatus} />
-        <div className="ml-auto flex items-center gap-2">
-          <FilterGroup
-            options={[{ label: 'By score', value: 'score' }, { label: 'By date', value: 'date' }]}
-            value={sort}
-            onChange={setSort}
-          />
-          <button
-            onClick={() => exportCSV(filtered)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700/50 bg-[#111827] text-slate-400 hover:text-slate-200 hover:border-slate-600 text-xs font-medium transition-colors"
-            title="Export to CSV"
-          >
-            <Download size={11} />
-            Export
-          </button>
+      <div className="flex flex-col gap-2 mb-5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5">
+            <SlidersHorizontal size={12} /> Score
+          </span>
+          <FilterGroup options={SCORE_FILTERS.map(f => ({ label: f.label, min: f.min }))} value={minScore} onChange={setMinScore} />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5 w-[42px]">Status</span>
+          <FilterGroup options={STATUS_FILTERS.map(f => ({ label: f.label, value: f.value }))} value={status} onChange={setStatus} />
+          <div className="ml-auto flex items-center gap-2">
+            <FilterGroup
+              options={[{ label: 'Score', value: 'score' }, { label: 'Date', value: 'date' }]}
+              value={sort}
+              onChange={setSort}
+            />
+            <button
+              onClick={() => exportCSV(filtered)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700/50 bg-[#111827] text-slate-400 hover:text-slate-200 hover:border-slate-600 text-xs font-medium transition-colors"
+              title="Export to CSV"
+            >
+              <Download size={11} />
+            </button>
+          </div>
         </div>
       </div>
 

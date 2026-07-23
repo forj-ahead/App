@@ -11,8 +11,8 @@ export default async function ClientsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-6 md:mb-8">
         <div>
           <h1 className="text-lg font-semibold text-white">Clients</h1>
           <p className="text-slate-400 text-sm mt-0.5">{businesses?.length ?? 0} total</p>

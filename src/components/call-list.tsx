@@ -67,7 +67,7 @@ function CallRow({ call, isAdmin }: { call: any; isAdmin: boolean }) {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex items-center gap-1 text-slate-500 text-xs">
             <Clock size={11} />
             {fmt(call.duration_seconds)}
@@ -79,7 +79,7 @@ function CallRow({ call, isAdmin }: { call: any; isAdmin: boolean }) {
           }`}>
             {lead ? 'Qualified' : 'Unscored'}
           </span>
-          <span className="text-slate-600 text-xs tabular-nums">{time}</span>
+          <span className="text-slate-600 text-xs tabular-nums hidden md:block">{time}</span>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>

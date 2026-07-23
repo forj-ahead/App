@@ -58,8 +58,8 @@ export default async function DashboardPage({
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-8 flex items-center justify-between gap-4">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
+      <div className="mb-6 md:mb-8 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold text-white">Leads</h1>
           <p className="text-zinc-500 text-sm mt-0.5">{activeBusinessName}</p>

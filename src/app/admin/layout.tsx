@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <AppSidebar user={user} profile={profile} />
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background pt-14 md:pt-0">
         {children}
       </main>
     </div>

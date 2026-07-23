@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar user={user} profile={profile} newLeadCount={newLeadCount ?? 0} />
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background pt-14 md:pt-0">
         {children}
       </main>
     </div>

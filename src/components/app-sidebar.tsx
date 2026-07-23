@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2 } from 'lucide-react'
+import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2, Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -12,7 +13,6 @@ interface AppSidebarProps {
   profile: { role: string } | null
   newLeadCount?: number
 }
-
 
 const clientNav = [
   { href: '/dashboard', label: 'Leads', icon: LayoutDashboard, exact: true },
@@ -32,6 +32,7 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
   const router = useRouter()
   const isAdmin = profile?.role === 'admin'
   const nav = isAdmin ? adminNav : clientNav
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   function isActive(href: string, exact: boolean) {
     return exact ? pathname === href : pathname.startsWith(href)
@@ -43,8 +44,8 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
     router.push('/login')
   }
 
-  return (
-    <aside className="w-52 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#080e1a] border-r border-slate-800/60">
+  const sidebarContent = (
+    <aside className="w-52 flex-shrink-0 flex flex-col h-full bg-[#080e1a] border-r border-slate-800/60">
       {/* Logo */}
       <div className="h-14 px-4 flex items-center border-b border-slate-800/60">
         <div className="flex items-center gap-2.5">
@@ -56,6 +57,14 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
             Admin
           </span>
         )}
+        {/* Close button — mobile only */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="ml-auto md:hidden text-slate-500 hover:text-white p-1"
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -66,6 +75,7 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
             <Link
               key={href}
               href={href}
+              onClick={() => setMobileOpen(false)}
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
                 active
@@ -93,6 +103,7 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
               <Link
                 key={`c-${href}`}
                 href={href}
+                onClick={() => setMobileOpen(false)}
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
                   isActive(href, exact)
@@ -122,5 +133,52 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
         </button>
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex h-screen sticky top-0">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#080e1a] border-b border-slate-800/60 flex items-center px-4 gap-3">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="text-slate-400 hover:text-white p-1 -ml-1"
+          aria-label="Open menu"
+        >
+          <Menu size={20} />
+        </button>
+        <Image src="/logo-icon.png" alt="Forj" width={24} height={24} className="rounded-md" />
+        <span className="text-white font-semibold text-sm">Forj</span>
+        {isAdmin && (
+          <span className="text-[10px] font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/25 px-1.5 py-0.5 rounded">
+            Admin
+          </span>
+        )}
+        {newLeadCount > 0 && (
+          <span className="ml-auto text-[10px] font-bold bg-blue-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none">
+            {newLeadCount > 99 ? '99+' : newLeadCount}
+          </span>
+        )}
+      </div>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="relative z-10 h-full">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   )
 }

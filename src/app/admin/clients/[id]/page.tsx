@@ -60,9 +60,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         </Link>
       </div>
 
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-4 md:p-6 max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-start justify-between mb-7">
+        <div className="flex items-start justify-between mb-5 md:mb-7">
           <div>
             <h1 className="text-2xl font-bold text-white">{business.name}</h1>
             <p className="text-white/35 text-sm mt-0.5">{business.industry}</p>
@@ -74,7 +74,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 md:mb-8">
           {[
             { label: 'New Leads', value: newLeads, accent: true },
             { label: 'Total Leads', value: leads.length, accent: false },
@@ -88,9 +88,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Leads — takes 2 cols */}
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <h2 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">
               Qualified Leads · {leads.length}
             </h2>

@@ -139,9 +139,9 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
   const reportDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8 print:mb-6">
+      <div className="flex flex-col gap-4 mb-6 md:mb-8 md:flex-row md:items-start md:justify-between print:mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <img src="/logo-icon.png" alt="Forj" className="w-6 h-6 rounded print:hidden" />
@@ -151,7 +151,7 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
           <p className="text-slate-500 text-sm mt-0.5 print:text-gray-600">Generated {reportDate}</p>
         </div>
 
-        <div className="flex items-center gap-2 print:hidden">
+        <div className="flex items-center gap-2 print:hidden flex-wrap">
           {/* Business filter */}
           {isAdmin && businesses && businesses.length > 0 && (
             <div className="relative">
