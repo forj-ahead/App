@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { LeadFeed } from '@/components/lead-feed'
 import { StatsBar } from '@/components/stats-bar'
+import { BusinessFilter } from '@/components/business-filter'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ business?: string }>
+}) {
+  const { business: filterBusinessId } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -13,44 +19,54 @@ export default async function DashboardPage() {
     .single()
 
   const isAdmin = profile?.role === 'admin'
-  const businessId = profile?.business_id
+  const businessId = isAdmin ? (filterBusinessId || null) : profile?.business_id
 
-  // Admins see all leads; clients see only their business
   const leadsQuery = supabase
     .from('leads')
     .select('*, calls(*)')
     .order('created_at', { ascending: false })
     .limit(100)
 
-  if (!isAdmin && businessId) {
-    leadsQuery.eq('business_id', businessId)
+  if (businessId) leadsQuery.eq('business_id', businessId)
+
+  const countQuery = (table: 'leads' | 'calls') => {
+    const q = supabase.from(table).select('*', { count: 'exact', head: true })
+    if (businessId) q.eq('business_id', businessId)
+    return q
   }
 
-  const [leadsRes, totalLeadsRes, totalCallsRes, newLeadsRes] = await Promise.all([
+  const newLeadsQ = supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new')
+  if (businessId) newLeadsQ.eq('business_id', businessId)
+
+  const [leadsRes, totalLeadsRes, totalCallsRes, newLeadsRes, businessesRes] = await Promise.all([
     leadsQuery,
-    isAdmin
-      ? supabase.from('leads').select('*', { count: 'exact', head: true })
-      : supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
-    isAdmin
-      ? supabase.from('calls').select('*', { count: 'exact', head: true })
-      : supabase.from('calls').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
-    isAdmin
-      ? supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'new')
-      : supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId).eq('status', 'new'),
+    countQuery('leads'),
+    countQuery('calls'),
+    newLeadsQ,
+    isAdmin ? supabase.from('businesses').select('id, name').order('name') : Promise.resolve({ data: [] }),
   ])
+
+  const activeBusinessName = isAdmin
+    ? (businessesRes.data?.find(b => b.id === filterBusinessId)?.name ?? 'All clients')
+    : (profile?.businesses?.name ?? '')
 
   const stats = {
     totalLeads: totalLeadsRes.count ?? 0,
     totalCalls: totalCallsRes.count ?? 0,
     newLeads: newLeadsRes.count ?? 0,
-    businessName: isAdmin ? 'All clients' : (profile?.businesses?.name ?? ''),
+    businessName: activeBusinessName,
   }
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-lg font-semibold text-white">Leads</h1>
-        <p className="text-zinc-500 text-sm mt-0.5">{stats.businessName}</p>
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold text-white">Leads</h1>
+          <p className="text-zinc-500 text-sm mt-0.5">{activeBusinessName}</p>
+        </div>
+        {isAdmin && (
+          <BusinessFilter businesses={businessesRes.data ?? []} />
+        )}
       </div>
       <StatsBar stats={stats} />
       <div className="mt-8">
