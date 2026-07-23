@@ -3,10 +3,9 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2, Sun, Moon } from 'lucide-react'
+import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/components/theme-provider'
 
 interface AppSidebarProps {
   user: { email?: string } | null
@@ -31,7 +30,6 @@ const adminNav = [
 export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { theme, toggle } = useTheme()
   const isAdmin = profile?.role === 'admin'
   const nav = isAdmin ? adminNav : clientNav
 
@@ -112,24 +110,8 @@ export function AppSidebar({ user, profile, newLeadCount = 0 }: AppSidebarProps)
 
       {/* Footer */}
       <div className="px-2 py-3 border-t border-slate-800/60">
-        <div className="px-3 py-1.5 mb-1 flex items-center justify-between">
+        <div className="px-3 py-1.5 mb-1">
           <p className="text-slate-600 text-xs truncate">{user?.email}</p>
-          {/* Theme toggle */}
-          <button
-            onClick={toggle}
-            className="flex-shrink-0 w-8 h-4 rounded-full relative transition-colors duration-200 focus:outline-none"
-            style={{ backgroundColor: theme === 'dark' ? '#1e3a5f' : '#cbd5e1' }}
-            aria-label="Toggle theme"
-          >
-            <span
-              className="absolute top-0.5 w-3 h-3 rounded-full flex items-center justify-center transition-all duration-200 bg-white shadow-sm"
-              style={{ left: theme === 'dark' ? '17px' : '2px' }}
-            >
-              {theme === 'dark'
-                ? <Moon size={7} className="text-blue-600" />
-                : <Sun size={7} className="text-amber-500" />}
-            </span>
-          </button>
         </div>
         <button
           onClick={handleSignOut}
