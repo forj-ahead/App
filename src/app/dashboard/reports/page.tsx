@@ -28,9 +28,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     const callsQ = supabase.from('calls').select('id, created_at, duration_seconds').gte('created_at', start.toISOString()).lte('created_at', end.toISOString())
     if (!isAdmin && businessId) { leadsQ.eq('business_id', businessId); callsQ.eq('business_id', businessId) }
     const [{ data: leads }, { data: calls }] = await Promise.all([leadsQ, callsQ])
-    const prevLeadsQ = supabase.from('leads').select('id').gte('created_at', prevStart.toISOString()).lte('created_at', prevEnd.toISOString())
+    const prevLeadsQ = supabase.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', prevStart.toISOString()).lte('created_at', prevEnd.toISOString())
     if (!isAdmin && businessId) prevLeadsQ.eq('business_id', businessId)
-    const { count: prevLeadCount } = await prevLeadsQ.select('id', { count: 'exact', head: true })
+    const { count: prevLeadCount } = await prevLeadsQ
     return <ReportView leads={leads ?? []} calls={calls ?? []} period={period} prevLeadCount={prevLeadCount ?? 0} businessName={isAdmin ? 'All clients' : ((profile?.businesses as any)?.name ?? '')} />
   }
 
