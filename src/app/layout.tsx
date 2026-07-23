@@ -17,8 +17,7 @@ export const metadata: Metadata = {
   description: "Never miss a qualified lead. AI answers your calls, qualifies prospects, and alerts you instantly.",
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico' },
+      { url: '/logo-icon.png', type: 'image/png' },
     ],
   },
 };

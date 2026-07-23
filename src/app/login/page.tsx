@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Eye, EyeOff, Zap } from 'lucide-react'
+import Image from 'next/image'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,9 +33,7 @@ export default function LoginPage() {
         {/* Logo mark */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center">
-              <Zap size={14} className="text-white" fill="white" />
-            </div>
+            <Image src="/logo-icon.png" alt="Forj" width={28} height={28} className="rounded-md" />
             <span className="text-white font-semibold text-sm">Forj</span>
           </div>
           <h1 className="text-xl font-semibold text-white mb-1">Sign in</h1>
