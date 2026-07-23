@@ -14,47 +14,39 @@ export default async function DashboardPage() {
 
   const businessId = profile?.business_id
 
-  // Fetch recent leads
-  const { data: leads } = await supabase
-    .from('leads')
-    .select('*, calls(*)')
-    .eq('business_id', businessId)
-    .order('created_at', { ascending: false })
-    .limit(50)
-
-  // Stats
-  const { count: totalLeads } = await supabase
-    .from('leads')
-    .select('*', { count: 'exact', head: true })
-    .eq('business_id', businessId)
-
-  const { count: totalCalls } = await supabase
-    .from('calls')
-    .select('*', { count: 'exact', head: true })
-    .eq('business_id', businessId)
-
-  const { count: newLeads } = await supabase
-    .from('leads')
-    .select('*', { count: 'exact', head: true })
-    .eq('business_id', businessId)
-    .eq('status', 'new')
+  const [leadsRes, totalLeadsRes, totalCallsRes, newLeadsRes] = await Promise.all([
+    supabase.from('leads').select('*, calls(*)').eq('business_id', businessId).order('created_at', { ascending: false }).limit(50),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
+    supabase.from('calls').select('*', { count: 'exact', head: true }).eq('business_id', businessId),
+    supabase.from('leads').select('*', { count: 'exact', head: true }).eq('business_id', businessId).eq('status', 'new'),
+  ])
 
   const stats = {
-    totalLeads: totalLeads ?? 0,
-    totalCalls: totalCalls ?? 0,
-    newLeads: newLeads ?? 0,
+    totalLeads: totalLeadsRes.count ?? 0,
+    totalCalls: totalCallsRes.count ?? 0,
+    newLeads: newLeadsRes.count ?? 0,
     businessName: profile?.businesses?.name ?? 'Your Business',
   }
 
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Lead Dashboard</h1>
-        <p className="text-white/40 text-sm">All qualified calls, ranked by score</p>
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="mb-7">
+        <p className="text-white/25 text-xs font-medium mb-1">{today}</p>
+        <h1 className="text-2xl font-bold text-white">Lead Dashboard</h1>
+        {profile?.businesses?.name && (
+          <p className="text-white/35 text-sm mt-0.5">{profile.businesses.name}</p>
+        )}
       </div>
       <StatsBar stats={stats} />
       <div className="mt-8">
-        <LeadFeed leads={leads ?? []} />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-white/60 text-sm font-semibold">
+            {leadsRes.data?.length ?? 0} lead{leadsRes.data?.length !== 1 ? 's' : ''} · sorted by score
+          </h2>
+        </div>
+        <LeadFeed leads={leadsRes.data ?? []} />
       </div>
     </div>
   )
