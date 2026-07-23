@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function scoreLead({ transcript, business }: { transcript: string; business: Record<string, unknown> }) {
+  console.log('ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY, 'transcript length:', transcript?.length)
   if (!transcript || !process.env.ANTHROPIC_API_KEY) return null
 
   const prompt = `You are a lead qualification assistant for a ${business.industry} business called "${business.name}".
@@ -128,12 +129,18 @@ Respond with only valid JSON, no markdown.`
     }),
   })
 
-  if (!res.ok) return null
+  if (!res.ok) {
+    const errBody = await res.text()
+    console.error('Anthropic API error:', res.status, errBody)
+    return null
+  }
 
   const data = await res.json()
+  console.log('Anthropic response:', JSON.stringify(data).substring(0, 500))
   try {
     return JSON.parse(data.content[0].text)
-  } catch {
+  } catch (e) {
+    console.error('JSON parse error:', e, data)
     return null
   }
 }
