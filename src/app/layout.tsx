@@ -16,9 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Forj — AI Lead Qualification",
   description: "Never miss a qualified lead. AI answers your calls, qualifies prospects, and alerts you instantly.",
-  icons: {
-    icon: '/favicon.png',
-  },
 };
 
 export default function RootLayout({
