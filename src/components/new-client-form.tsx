@@ -106,6 +106,7 @@ export function NewClientForm() {
     serviceArea: '',
     customQuestions: '',
     disqualifyIf: '',
+    faqs: '',
     extraContext: '',
   })
 
@@ -154,6 +155,7 @@ export function NewClientForm() {
         serviceArea: form.serviceArea,
         customQuestions: form.customQuestions,
         disqualifyIf: form.disqualifyIf,
+        faqs: form.faqs,
         extraContext: form.extraContext,
       }),
     })
@@ -288,6 +290,17 @@ export function NewClientForm() {
             className={`${inputClass} resize-none font-mono text-xs`}
             rows={3}
           />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-white/60 text-xs">FAQs & Common Questions <span className="normal-case font-normal opacity-60">— what callers typically ask about</span></Label>
+          <Textarea
+            value={form.faqs}
+            onChange={e => set('faqs', e.target.value)}
+            placeholder={"Do you offer free estimates? Yes, we offer free estimates for all jobs over $500.\nWhat are your hours? Monday–Friday 7am–5pm, Saturday by appointment.\nHow long does a roof replacement take? Most jobs are 1–2 days.\nDo you work with insurance? Yes, we handle insurance claims directly."}
+            className={`${inputClass} resize-none font-mono text-xs`}
+            rows={6}
+          />
+          <p className="text-white/20 text-xs">One Q&A per line. The agent will use these to answer callers directly.</p>
         </div>
         <div className="space-y-2">
           <Label className="text-white/60 text-xs">Anything else the agent should know <span className="normal-case font-normal opacity-60">— optional</span></Label>

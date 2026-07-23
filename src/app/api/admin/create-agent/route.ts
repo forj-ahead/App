@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     serviceArea,
     customQuestions,
     disqualifyIf,
+    faqs,
     extraContext,
   } = body
 
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
     ? `Score 1–3 and wrap up politely if:\n${disqualifyIf}`
     : `Score 1–3 if the caller clearly doesn't need ${industry} services, is just price fishing with no intent to move forward, or is outside any stated service area.`
 
+  const faqsLine = faqs ? `\nIf callers ask common questions, here are the answers to use:\n${faqs}` : ''
   const extraLine = extraContext ? `\nAdditional context:\n${extraContext}` : ''
 
   const prompt = `You are ${agentName}, a call answering agent for ${businessName}, a ${industry} business. Your tone should be ${toneDesc}.
@@ -77,7 +79,7 @@ Your job:
 4. ${disqualifyLine}
 5. End every qualified call by letting them know someone will follow up shortly.
 
-Keep conversations natural and don't rush. Never make promises about pricing, availability, or timelines.${extraLine}`
+Keep conversations natural and don't rush. Never make promises about pricing, availability, or timelines.${faqsLine}${extraLine}`
 
   // Create Retell LLM
   const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
