@@ -112,9 +112,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/30">SMS alerts</span>
-                  <span className={business.sms_alerts_enabled ? 'text-green-400' : 'text-white/25'}>
-                    {business.sms_alerts_enabled ? 'On' : 'Off'}
-                  </span>
+                  <span className="text-white/25">Coming soon</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/30">Score threshold</span>

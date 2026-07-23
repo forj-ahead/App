@@ -39,7 +39,7 @@ export default async function SettingsPage() {
             <Row label="Phone number" value={b?.twilio_number ?? '—'} />
             <Row label="Alert phone" value={b?.alert_phone ?? '—'} />
             <Row label="Score threshold" value={`${b?.score_threshold ?? 7}/10`} />
-            <Row label="SMS alerts" value={b?.sms_alerts_enabled ? 'Enabled' : 'Disabled'} />
+            <Row label="SMS alerts" value="Coming soon" />
           </div>
         </div>
 
