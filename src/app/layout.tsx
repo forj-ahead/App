@@ -17,9 +17,7 @@ export const metadata: Metadata = {
   title: "Forj — AI Lead Qualification",
   description: "Never miss a qualified lead. AI answers your calls, qualifies prospects, and alerts you instantly.",
   icons: {
-    icon: [
-      { url: '/logo-icon.png', type: 'image/png' },
-    ],
+    icon: '/favicon.png',
   },
 };
 
