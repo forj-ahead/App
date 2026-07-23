@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut } from 'lucide-react'
+import { LayoutDashboard, Phone, Settings, Users, FileText, LogOut, BarChart2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +17,7 @@ interface AppSidebarProps {
 const clientNav = [
   { href: '/dashboard', label: 'Leads', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/calls', label: 'Calls', icon: Phone, exact: false },
+  { href: '/dashboard/reports', label: 'Reports', icon: BarChart2, exact: false },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings, exact: false },
 ]
 
