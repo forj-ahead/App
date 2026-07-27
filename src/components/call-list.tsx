@@ -1,16 +1,28 @@
 'use client'
 
 import { useState } from 'react'
-import { Phone, Clock, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
+import { Phone, Clock, ChevronDown, ChevronUp, MessageSquare, Trash2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function fmt(s: number) {
   if (s < 60) return `${s}s`
   return `${Math.floor(s / 60)}m ${s % 60}s`
 }
 
-function CallRow({ call, isAdmin }: { call: any; isAdmin: boolean }) {
+function CallRow({ call, isAdmin, onDelete }: { call: any; isAdmin: boolean; onDelete: (id: string) => void }) {
   const [open, setOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const biz = call.businesses
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setDeleting(true)
+    const supabase = createClient()
+    await supabase.from('calls').delete().eq('id', call.id)
+    onDelete(call.id)
+  }
 
   const time = new Date(call.created_at).toLocaleString('en-US', {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
@@ -48,6 +60,18 @@ function CallRow({ call, isAdmin }: { call: any; isAdmin: boolean }) {
               No transcript
             </span>
           )}
+          <button
+            onClick={handleDelete}
+            onBlur={() => setConfirmDelete(false)}
+            disabled={deleting}
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors ${
+              confirmDelete
+                ? 'text-red-300 bg-red-500/20 border-red-500/40 hover:bg-red-500/30'
+                : 'text-slate-600 border-transparent hover:text-red-400 hover:border-red-500/30'
+            }`}
+          >
+            {confirmDelete ? 'Confirm' : <Trash2 size={12} />}
+          </button>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>
@@ -84,7 +108,10 @@ function CallRow({ call, isAdmin }: { call: any; isAdmin: boolean }) {
   )
 }
 
-export function CallList({ calls, isAdmin }: { calls: any[]; isAdmin: boolean }) {
+export function CallList({ calls: initialCalls, isAdmin }: { calls: any[]; isAdmin: boolean }) {
+  const [calls, setCalls] = useState(initialCalls)
+  function removeCall(id: string) { setCalls(c => c.filter(x => x.id !== id)) }
+
   if (!calls.length) {
     return (
       <div className="flex flex-col items-center justify-center py-24 border border-slate-700/50 rounded-xl bg-[#111827]/40">
@@ -115,7 +142,7 @@ export function CallList({ calls, isAdmin }: { calls: any[]; isAdmin: boolean })
 
       <div className="space-y-2">
         {calls.map(call => (
-          <CallRow key={call.id} call={call} isAdmin={isAdmin} />
+          <CallRow key={call.id} call={call} isAdmin={isAdmin} onDelete={removeCall} />
         ))}
       </div>
     </div>

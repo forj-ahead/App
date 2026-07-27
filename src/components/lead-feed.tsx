@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
@@ -64,13 +64,24 @@ const STATUS_ACTIONS: { to: Status; label: string; icon: React.ElementType; styl
   { to: 'new',          label: 'Reopen',            icon: RefreshCw, style: 'bg-blue-500/15 hover:bg-blue-500/25 border-blue-500/30 text-blue-300' },
 ]
 
-function LeadRow({ lead: initialLead }: { lead: Lead }) {
+function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   const [lead, setLead] = useState(initialLead)
   const [updating, setUpdating] = useState(false)
   const [notes, setNotes] = useState(initialLead.notes ?? '')
   const [notesSaved, setNotesSaved] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setDeleting(true)
+    const supabase = createClient()
+    await supabase.from('leads').delete().eq('id', lead.id)
+    onDelete(lead.id)
+  }
 
   const { text, bg } = scoreColor(lead.score)
   const call = (lead as any).calls
@@ -135,6 +146,18 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
           <StatusPill status={lead.status as Status} />
           {(() => { const u = waitingUrgency(lead); return u ? <span className={`text-[10px] font-medium hidden sm:block ${u.className}`}>{u.label}</span> : null })()}
           <span className="text-slate-600 text-xs tabular-nums hidden md:block">{time}</span>
+          <button
+            onClick={handleDelete}
+            onBlur={() => setConfirmDelete(false)}
+            disabled={deleting}
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors ${
+              confirmDelete
+                ? 'text-red-300 bg-red-500/20 border-red-500/40 hover:bg-red-500/30'
+                : 'text-slate-600 border-transparent hover:text-red-400 hover:border-red-500/30'
+            }`}
+          >
+            {confirmDelete ? 'Confirm' : <Trash2 size={12} />}
+          </button>
           {open ? <ChevronUp size={14} className="text-slate-600" /> : <ChevronDown size={14} className="text-slate-600" />}
         </div>
       </button>
@@ -282,10 +305,12 @@ function exportCSV(leads: Lead[]) {
   URL.revokeObjectURL(url)
 }
 
-export function LeadFeed({ leads }: { leads: Lead[] }) {
+export function LeadFeed({ leads: initialLeads }: { leads: Lead[] }) {
+  const [leads, setLeads] = useState(initialLeads)
   const [minScore, setMinScore] = useState(0)
   const [status, setStatus] = useState('all')
   const [sort, setSort] = useState<'score' | 'date'>('score')
+  function removeLead(id: string) { setLeads(l => l.filter(x => x.id !== id)) }
 
   const filtered = useMemo(() => {
     let out = leads.filter(l => l.score >= minScore)
@@ -353,7 +378,7 @@ export function LeadFeed({ leads }: { leads: Lead[] }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map(lead => <LeadRow key={lead.id} lead={lead} />)}
+          {filtered.map(lead => <LeadRow key={lead.id} lead={lead} onDelete={removeLead} />)}
         </div>
       )}
     </div>
