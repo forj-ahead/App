@@ -6,13 +6,14 @@ import { LeadFeed } from '@/components/lead-feed'
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, text] =
-    score >= 8 ? ['bg-green-500/12 border-green-500/25', 'text-green-400'] :
-    score >= 6 ? ['bg-amber-500/12 border-amber-500/25', 'text-amber-400'] :
+    score >= 5 ? ['bg-emerald-500/12 border-emerald-500/25', 'text-emerald-400'] :
+    score >= 4 ? ['bg-blue-500/12 border-blue-500/25', 'text-blue-400'] :
+    score >= 3 ? ['bg-amber-500/12 border-amber-500/25', 'text-amber-400'] :
                  ['bg-red-500/12 border-red-500/25', 'text-red-400']
   return (
     <div className={`flex flex-col items-center justify-center w-11 h-11 rounded-xl border flex-shrink-0 ${bg}`}>
       <span className={`text-base font-black tabular-nums leading-none ${text}`}>{score}</span>
-      <span className={`text-[9px] font-semibold opacity-50 ${text}`}>/10</span>
+      <span className={`text-[9px] font-semibold opacity-50 ${text}`}>/5</span>
     </div>
   )
 }
@@ -79,7 +80,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             { label: 'New Leads', value: newLeads, accent: true },
             { label: 'Total Leads', value: leads.length, accent: false },
             { label: 'Total Calls', value: calls.length, accent: false },
-            { label: 'Avg Score', value: avgScore ? `${avgScore}/10` : '—', accent: false },
+            { label: 'Avg Score', value: avgScore ? `${avgScore}/5` : '—', accent: false },
           ].map(({ label, value, accent }) => (
             <div key={label} className={`rounded-xl border p-4 ${accent ? 'bg-[#2D6FE8]/10 border-[#2D6FE8]/25' : 'bg-[#0D1525] border-white/[0.06]'}`}>
               <p className={`text-xs font-medium uppercase tracking-wider mb-2 ${accent ? 'text-[#4D8BF0]/60' : 'text-white/25'}`}>{label}</p>
@@ -116,7 +117,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/30">Score threshold</span>
-                  <span className="text-white/60">{business.score_threshold}/10</span>
+                  <span className="text-white/60">{business.score_threshold}/5</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/30">Agent</span>

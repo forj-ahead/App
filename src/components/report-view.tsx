@@ -97,10 +97,10 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
     : '—'
 
   // ── Score breakdown ──────────────────────────────────────────
-  const hot   = leads.filter(l => l.score >= 9).length
-  const warm  = leads.filter(l => l.score >= 7 && l.score < 9).length
-  const cool  = leads.filter(l => l.score >= 5 && l.score < 7).length
-  const cold  = leads.filter(l => l.score < 5).length
+  const hot   = leads.filter(l => l.score >= 5).length
+  const warm  = leads.filter(l => l.score === 4).length
+  const cool  = leads.filter(l => l.score === 3).length
+  const cold  = leads.filter(l => l.score <= 2).length
 
   // ── Status funnel ────────────────────────────────────────────
   const byStatus = {
@@ -210,10 +210,10 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">Lead Quality Breakdown</p>
           <div className="space-y-3">
             {[
-              { label: 'Hot (9–10)', count: hot,  color: 'bg-emerald-500' },
-              { label: 'Warm (7–8)', count: warm, color: 'bg-blue-500' },
-              { label: 'Cool (5–6)', count: cool, color: 'bg-amber-500' },
-              { label: 'Cold (1–4)', count: cold, color: 'bg-slate-600' },
+              { label: 'Hot (5)', count: hot,  color: 'bg-emerald-500' },
+              { label: 'Good (4)', count: warm, color: 'bg-blue-500' },
+              { label: 'Warm (3)', count: cool, color: 'bg-amber-500' },
+              { label: 'Cold (1–2)', count: cold, color: 'bg-slate-600' },
             ].map(({ label, count, color }) => (
               <div key={label}>
                 <div className="flex items-center justify-between mb-1">

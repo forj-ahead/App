@@ -106,13 +106,14 @@ ${transcript}
 </transcript>
 
 Analyze this call and respond with a JSON object containing:
-- score: number 1-10 (10 = perfect lead, 1 = completely unqualified)
+- score: number 1-5 (5 = perfect lead, 1 = completely unqualified)
 - callerName: string or null (first name if mentioned)
 - serviceRequested: string (what they need in 1 short phrase)
 - summary: string (2-3 sentences, plain English, what this caller needs and why they called)
 - reasoning: string (1-2 sentences explaining the score)
 
-If the caller is asking for a service this business does not offer, score must be 1-3.
+Scoring guide: 5 = ready to book, clear need, decision maker. 4 = good lead, needs follow-up. 3 = possible, unclear intent. 2 = unlikely fit. 1 = wrong service, outside area, or solicitor.
+If the caller is asking for a service this business does not offer, score must be 1-2.
 Respond with only valid JSON, no markdown.`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {

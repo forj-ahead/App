@@ -97,7 +97,7 @@ export function NewClientForm() {
     contactName: '',
     contactEmail: '',
     alertPhone: '',
-    scoreThreshold: '7',
+    scoreThreshold: '4',
     agentName: 'Maya',
     tone: 'friendly',
     greeting: '',
@@ -206,8 +206,8 @@ export function NewClientForm() {
             <Input value={form.alertPhone} onChange={e => set('alertPhone', e.target.value)} placeholder="+17035551234" className={inputClass} />
           </div>
           <div className="space-y-2">
-            <Label className="text-white/60 text-xs">Score Threshold (qualify at X/10+)</Label>
-            <Input type="number" min="1" max="10" value={form.scoreThreshold} onChange={e => set('scoreThreshold', e.target.value)} className={inputClass} />
+            <Label className="text-white/60 text-xs">Score Threshold (qualify at X/5+)</Label>
+            <Input type="number" min="1" max="5" value={form.scoreThreshold} onChange={e => set('scoreThreshold', e.target.value)} className={inputClass} />
           </div>
         </div>
       </div>

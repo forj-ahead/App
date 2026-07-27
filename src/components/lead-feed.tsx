@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { Phone, ChevronDown, ChevronUp, Clock, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
@@ -28,22 +28,23 @@ function waitingUrgency(lead: Lead): { label: string; className: string } | null
 }
 
 function scoreColor(s: number) {
-  if (s >= 8) return { text: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25' }
-  if (s >= 6) return { text: 'text-amber-400',   bg: 'bg-amber-500/15  border-amber-500/25'  }
-  return          { text: 'text-red-400',         bg: 'bg-red-500/15    border-red-500/25'    }
+  if (s >= 5) return { text: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25' }
+  if (s >= 4) return { text: 'text-blue-400',    bg: 'bg-blue-500/15    border-blue-500/25'    }
+  if (s >= 3) return { text: 'text-amber-400',   bg: 'bg-amber-500/15   border-amber-500/25'   }
+  return          { text: 'text-red-400',         bg: 'bg-red-500/15     border-red-500/25'     }
 }
 
 function scoreLabel(s: number) {
-  if (s >= 9) return 'Hot'
-  if (s >= 7) return 'Warm'
-  if (s >= 5) return 'Cool'
+  if (s >= 5) return 'Hot'
+  if (s >= 4) return 'Good'
+  if (s >= 3) return 'Warm'
   return 'Cold'
 }
 
 const STATUS_META: Record<Status, { label: string; color: string }> = {
-  new:          { label: 'New',          color: 'text-blue-300  bg-blue-500/10  border-blue-500/25' },
-  contacted:    { label: 'Contacted',    color: 'text-purple-300 bg-purple-500/10 border-purple-500/25' },
-  closed:       { label: 'Closed',       color: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25' },
+  new:          { label: 'New',          color: 'text-blue-300  bg-blue-500/5  border-blue-500/25' },
+  contacted:    { label: 'Contacted',    color: 'text-purple-300 bg-purple-500/5 border-purple-500/25' },
+  closed:       { label: 'Closed',       color: 'text-emerald-300 bg-emerald-500/5 border-emerald-500/25' },
   disqualified: { label: 'Disqualified', color: 'text-slate-500  bg-slate-800/50 border-slate-700/50' },
 }
 
@@ -119,7 +120,7 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
       <button onClick={() => setOpen(!open)} className="w-full text-left px-5 py-4 flex items-center gap-4">
         <div className={`flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl border ${bg}`}>
           <span className={`text-lg font-bold tabular-nums leading-none ${text}`}>{lead.score}</span>
-          <span className={`text-[9px] font-medium opacity-50 ${text}`}>/10</span>
+          <span className={`text-[9px] font-medium opacity-50 ${text}`}>/5</span>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -193,28 +194,6 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
             />
           </div>
 
-          {/* Transcript */}
-          {call && (
-            <div className="px-5 py-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">Transcript</p>
-                {call.duration_seconds && (
-                  <span className="flex items-center gap-1 text-slate-600 text-xs">
-                    <Clock size={10} />
-                    {call.duration_seconds < 60 ? `${call.duration_seconds}s` : `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s`}
-                  </span>
-                )}
-              </div>
-              {call.transcript ? (
-                <pre className="text-slate-400 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-[#0b1120] border border-slate-700/50 rounded-lg p-3.5 max-h-56 overflow-y-auto">
-                  {call.transcript}
-                </pre>
-              ) : (
-                <p className="text-slate-600 text-xs">No transcript available</p>
-              )}
-            </div>
-          )}
-
           {/* Call back */}
           <div className="px-5 py-3.5 flex items-center gap-3">
             <a
@@ -238,10 +217,9 @@ function LeadRow({ lead: initialLead }: { lead: Lead }) {
 
 const SCORE_FILTERS = [
   { label: 'All', min: 0 },
-  { label: '6+', min: 6 },
-  { label: '7+', min: 7 },
-  { label: '8+', min: 8 },
-  { label: '9–10', min: 9 },
+  { label: '3+', min: 3 },
+  { label: '4+', min: 4 },
+  { label: '5', min: 5 },
 ]
 
 const STATUS_FILTERS: { label: string; value: string }[] = [
