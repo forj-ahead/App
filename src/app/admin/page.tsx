@@ -1,13 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, FileText, Phone, TrendingUp, Plus } from 'lucide-react'
+import { Users, Phone, TrendingUp, Plus } from 'lucide-react'
 
 export default async function AdminPage() {
   const supabase = await createClient()
 
-  const [clientsRes, templatesRes, callsRes, leadsRes] = await Promise.all([
+  const [clientsRes, callsRes, leadsRes] = await Promise.all([
     supabase.from('businesses').select('*', { count: 'exact', head: true }),
-    supabase.from('templates').select('*', { count: 'exact', head: true }),
     supabase.from('calls').select('*', { count: 'exact', head: true }),
     supabase.from('leads').select('*', { count: 'exact', head: true }),
   ])
@@ -20,7 +19,6 @@ export default async function AdminPage() {
 
   const stats = [
     { label: 'Clients', value: clientsRes.count ?? 0, icon: Users, href: '/admin/clients' },
-    { label: 'Templates', value: templatesRes.count ?? 0, icon: FileText, href: '/admin/templates' },
     { label: 'Total Calls', value: callsRes.count ?? 0, icon: Phone, href: '/dashboard/calls' },
     { label: 'Total Leads', value: leadsRes.count ?? 0, icon: TrendingUp, href: '/dashboard' },
   ]
@@ -29,10 +27,10 @@ export default async function AdminPage() {
     <div className="p-4 md:p-8 max-w-5xl mx-auto">
       <div className="mb-6 md:mb-8">
         <h1 className="text-lg font-semibold text-white">Overview</h1>
-        <p className="text-slate-400 text-sm mt-0.5">All clients, templates, and activity</p>
+        <p className="text-slate-400 text-sm mt-0.5">All clients and activity</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 md:mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-6 md:mb-8">
         {stats.map(({ label, value, icon: Icon, href }) => (
           <Link key={label} href={href} className="bg-[#111827] hover:bg-[#1a2235] border border-slate-700/50 rounded-lg p-4 transition-colors group">
             <div className="flex items-center justify-between mb-3">
@@ -48,10 +46,6 @@ export default async function AdminPage() {
         <Link href="/admin/clients/new" className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-200 text-black text-xs font-semibold px-4 py-2 rounded-md transition-colors">
           <Plus size={13} />
           Onboard client
-        </Link>
-        <Link href="/admin/templates/new" className="inline-flex items-center gap-1.5 bg-[#1a2235] hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold px-4 py-2 rounded-md transition-colors">
-          <Plus size={13} />
-          New template
         </Link>
       </div>
 
