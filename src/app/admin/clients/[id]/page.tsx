@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Phone, Clock, ChevronRight, Settings2 } from 'lucide-react'
 import { LeadFeed } from '@/components/lead-feed'
+import { SmsConfig } from '@/components/sms-config'
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, text] =
@@ -106,25 +107,24 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 <Settings2 size={11} />
                 Config
               </h2>
-              <div className="bg-[#0D1525] border border-white/[0.06] rounded-xl p-4 space-y-3 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-white/30">Alert phone</span>
-                  <span className="text-white/60 font-mono">{business.alert_phone ?? '—'}</span>
+              <div className="space-y-2">
+                <div className="bg-[#0D1525] border border-white/[0.06] rounded-xl p-4 space-y-3 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-white/30">Score threshold</span>
+                    <span className="text-white/60">{business.score_threshold}/5</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/30">Agent</span>
+                    <span className={business.retell_agent_id ? 'text-green-400' : 'text-amber-400/70'}>
+                      {business.retell_agent_id ? 'Active' : 'None'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-white/30">SMS alerts</span>
-                  <span className="text-white/25">Coming soon</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/30">Score threshold</span>
-                  <span className="text-white/60">{business.score_threshold}/5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/30">Agent</span>
-                  <span className={business.retell_agent_id ? 'text-green-400' : 'text-amber-400/70'}>
-                    {business.retell_agent_id ? 'Active' : 'None'}
-                  </span>
-                </div>
+                <SmsConfig
+                  businessId={business.id}
+                  initialEnabled={business.sms_alerts_enabled}
+                  initialPhones={business.alert_phones ?? (business.alert_phone ? [business.alert_phone] : [])}
+                />
               </div>
             </div>
 

@@ -79,9 +79,13 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    // Send SMS alert if score meets threshold
-    if (lead && scored.score >= (business.score_threshold ?? 7) && business.alert_phone && business.sms_alerts_enabled) {
-      await sendSmsAlert({ business, lead: { ...lead, ...scored } })
+    // Send SMS alerts to all configured numbers
+    const phones: string[] = (business.alert_phones as string[])?.length
+      ? (business.alert_phones as string[])
+      : business.alert_phone ? [business.alert_phone as string] : []
+
+    if (lead && scored.score >= (business.score_threshold ?? 4) && phones.length && business.sms_alerts_enabled) {
+      await Promise.all(phones.map(phone => sendSmsAlert({ business, lead: { ...lead, ...scored }, to: phone })))
     }
 
     return NextResponse.json({ ok: true, score: scored.score })
@@ -146,10 +150,10 @@ Respond with only valid JSON, no markdown.`
   }
 }
 
-async function sendSmsAlert({ business, lead }: { business: Record<string, unknown>; lead: Record<string, unknown> }) {
+async function sendSmsAlert({ business, lead, to }: { business: Record<string, unknown>; lead: Record<string, unknown>; to: string }) {
   if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) return
 
-  const body = `🔥 New Lead (${lead.score}/10) — ${lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nView: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+  const body = `New Lead ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nView: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
 
   await fetch(
     `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`,
@@ -160,7 +164,7 @@ async function sendSmsAlert({ business, lead }: { business: Record<string, unkno
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        To: business.alert_phone as string,
+        To: to,
         From: process.env.TWILIO_PHONE_NUMBER!,
         Body: body,
       }).toString(),

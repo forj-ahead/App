@@ -13,6 +13,7 @@ export interface Business {
   services_excluded: string[]
   score_threshold: number
   alert_phone: string | null
+  alert_phones: string[]
   sms_alerts_enabled: boolean
   created_at: string
 }
