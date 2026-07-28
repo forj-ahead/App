@@ -55,11 +55,12 @@ function SuccessScreen({ data }: { data: SuccessData }) {
         <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-4">Remaining Steps</p>
         <ol className="space-y-4">
           {[
+            { title: 'Send the payment link', desc: 'https://buy.stripe.com/14A4gAd1W6rl3CN4K98AE00 — $199/mo. Confirm payment before proceeding.' },
             { title: 'Buy a phone number in Retell', desc: 'Retell dashboard → Phone Numbers → Buy number. Pick an area code close to the client.' },
             { title: 'Assign the agent to that number in Retell', desc: `Phone Numbers → select number → assign agent "${data.businessName}"` },
             { title: 'Add the number to the client record in Forj', desc: 'Go to the client detail page and enter it — format: +1XXXXXXXXXX' },
             { title: 'Test — call the Retell number yourself', desc: 'Agent should answer and a call should appear in the dashboard.' },
-            { title: 'Set up call forwarding with the client', desc: 'Do this together on the onboarding call using the codes on the client detail page.' },
+            { title: 'Set up call forwarding with the client', desc: 'Verizon/AT&T: dial *71 + Retell number, press call. T-Mobile: use the T-Mobile app → Calls → Call Forwarding.' },
           ].map((s, i) => (
             <li key={i} className="flex gap-3">
               <span className="w-5 h-5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
