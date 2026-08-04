@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2 } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2, Play, Pause } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
@@ -72,7 +72,26 @@ function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: s
   const [notesSaved, setNotesSaved] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function togglePlay(e: React.MouseEvent) {
+    e.stopPropagation()
+    const url = call?.recording_url
+    if (!url) return
+    if (!audioRef.current) {
+      audioRef.current = new Audio(url)
+      audioRef.current.onended = () => setPlaying(false)
+    }
+    if (playing) {
+      audioRef.current.pause()
+      setPlaying(false)
+    } else {
+      audioRef.current.play()
+      setPlaying(true)
+    }
+  }
 
   async function handleDelete(e: React.MouseEvent) {
     e.stopPropagation()
@@ -218,7 +237,7 @@ function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: s
           </div>
 
           {/* Call back */}
-          <div className="px-5 py-3.5 flex items-center gap-3">
+          <div className="px-5 py-3.5 flex items-center gap-3 flex-wrap">
             <a
               href={`tel:${lead.caller_number}`}
               onClick={() => lead.status === 'new' && updateStatus('contacted')}
@@ -227,10 +246,16 @@ function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: s
               <Phone size={11} />
               Call {lead.caller_name ?? 'back'}
             </a>
-            <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
-            {lead.status === 'new' && (
-              <span className="text-slate-600 text-[10px]">· Tapping call will auto-mark as contacted</span>
+            {call?.recording_url && (
+              <button
+                onClick={togglePlay}
+                className="inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors"
+              >
+                {playing ? <Pause size={11} /> : <Play size={11} />}
+                {playing ? 'Pause' : 'Play recording'}
+              </button>
             )}
+            <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
           </div>
         </div>
       )}

@@ -25,6 +25,7 @@ export interface Call {
   caller_number: string
   duration_seconds: number
   transcript: string | null
+  recording_url: string | null
   status: CallStatus
   created_at: string
 }

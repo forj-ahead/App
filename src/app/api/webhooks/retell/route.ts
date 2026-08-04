@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       from_number,
       transcript,
       duration_ms,
+      recording_url,
     } = call
 
     // Look up the business by their Twilio number
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
         caller_number: from_number,
         duration_seconds: Math.round((duration_ms ?? 0) / 1000),
         transcript: transcript ?? null,
+        recording_url: recording_url ?? null,
         status: 'completed',
       }, { onConflict: 'retell_call_id' })
       .select()
@@ -153,7 +155,7 @@ Respond with only valid JSON, no markdown.`
 async function sendSmsAlert({ business, lead, to }: { business: Record<string, unknown>; lead: Record<string, unknown>; to: string }) {
   if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) return
 
-  const body = `New Lead ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nView: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+  const body = `New Lead ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nCall back: ${lead.caller_number}\nView lead: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads/${lead.id}`
 
   await fetch(
     `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`,
