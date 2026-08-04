@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2, Play, Pause } from 'lucide-react'
+import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2, Play, Pause, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
+import Link from 'next/link'
 
 type Status = 'new' | 'contacted' | 'closed' | 'disqualified'
 
@@ -255,6 +256,14 @@ function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: s
                 {playing ? 'Pause' : 'Play recording'}
               </button>
             )}
+            <Link
+              href={`/dashboard/leads/${lead.id}`}
+              onClick={e => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
+            >
+              <ExternalLink size={11} />
+              View details
+            </Link>
             <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
           </div>
         </div>
