@@ -157,7 +157,19 @@ async function sendSmsAlert({ business, lead, to }: { business: Record<string, u
 
   const body = `New Lead ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nCall back: ${lead.caller_number}\nView lead: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads/${lead.id}`
 
-  await fetch(
+  const params: Record<string, string> = {
+    To: to,
+    Body: body,
+  }
+
+  // Use messaging service (A2P registered) if available, otherwise fall back to direct number
+  if (process.env.TWILIO_MESSAGING_SERVICE_SID) {
+    params.MessagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID
+  } else {
+    params.From = process.env.TWILIO_PHONE_NUMBER!
+  }
+
+  const res = await fetch(
     `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`,
     {
       method: 'POST',
@@ -165,11 +177,14 @@ async function sendSmsAlert({ business, lead, to }: { business: Record<string, u
         Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64')}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        To: to,
-        From: process.env.TWILIO_PHONE_NUMBER!,
-        Body: body,
-      }).toString(),
+      body: new URLSearchParams(params).toString(),
     }
   )
+
+  const result = await res.json()
+  if (result.error_code) {
+    console.error('Twilio SMS error:', result.error_code, result.error_message, 'to:', to)
+  } else {
+    console.log('SMS sent:', result.sid, 'status:', result.status, 'to:', to)
+  }
 }
