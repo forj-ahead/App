@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { SmsConfig } from '@/components/sms-config'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -39,9 +40,14 @@ export default async function SettingsPage() {
             <Row label="Phone number" value={b?.twilio_number ?? '—'} />
             <Row label="Alert phone" value={b?.alert_phone ?? '—'} />
             <Row label="Score threshold" value={`${b?.score_threshold ?? 4}/5`} />
-            <Row label="SMS alerts" value="Coming soon" />
           </div>
         </div>
+
+        <SmsConfig
+          businessId={b?.id}
+          initialEnabled={b?.sms_alerts_enabled ?? false}
+          initialPhones={(b?.alert_phones as string[]) ?? (b?.alert_phone ? [b.alert_phone] : [])}
+        />
 
         <div className="border border-white/[0.06] rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.01]">
