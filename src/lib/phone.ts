@@ -22,9 +22,3 @@ export function formatAsTyped(input: string): string {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
 }
-
-// alert_phones is the list; alert_phone is the older single-number field kept in sync with it
-export function alertPhonesFor(b: { alert_phones?: string[] | null; alert_phone?: string | null }): string[] {
-  if (b.alert_phones?.length) return b.alert_phones
-  return b.alert_phone ? [b.alert_phone] : []
-}

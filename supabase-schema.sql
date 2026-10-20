@@ -22,7 +22,7 @@ create table if not exists businesses (
   services_offered text[] not null default '{}',
   services_excluded text[] not null default '{}',
   score_threshold int not null default 7,
-  alert_phone text,
+  alert_phones text[] not null default '{}', -- numbers that get SMS lead alerts (+1XXXXXXXXXX)
   sms_alerts_enabled boolean not null default true,
   scoring_instructions text, -- optional extra lead-scoring rubric, appended to the scoring prompt
   created_at timestamptz default now()
@@ -46,6 +46,7 @@ create table if not exists calls (
   caller_number text not null,
   duration_seconds int not null default 0,
   transcript text,
+  recording_url text,
   status text not null default 'completed' check (status in ('completed', 'failed', 'in_progress')),
   created_at timestamptz default now()
 );

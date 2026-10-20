@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { alertPhonesFor } from '@/lib/phone'
 import { normalizeCallerType, isClientLead, callerTypeLabel } from '@/lib/caller-type'
 
 export async function POST(req: NextRequest) {
@@ -85,7 +84,7 @@ export async function POST(req: NextRequest) {
       .single()
 
     // Send SMS alerts to all configured numbers
-    const phones = alertPhonesFor(business)
+    const phones = (business.alert_phones as string[] | null) ?? []
 
     if (lead && scored.score >= (business.score_threshold ?? 4) && phones.length && business.sms_alerts_enabled) {
       await Promise.all(phones.map(phone => sendSmsAlert({ business, lead: { ...lead, ...scored }, to: phone })))

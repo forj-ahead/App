@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { SmsConfig } from '@/components/sms-config'
-import { alertPhonesFor, formatPhone } from '@/lib/phone'
+import { formatPhone } from '@/lib/phone'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -46,7 +46,7 @@ export default async function SettingsPage() {
         <SmsConfig
           businessId={b?.id}
           initialEnabled={b?.sms_alerts_enabled ?? false}
-          initialPhones={alertPhonesFor(b ?? {})}
+          initialPhones={(b?.alert_phones as string[] | null) ?? []}
         />
 
         <div className="border border-white/[0.06] rounded-lg overflow-hidden">

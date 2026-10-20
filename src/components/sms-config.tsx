@@ -20,11 +20,9 @@ export function SmsConfig({ businessId, initialEnabled, initialPhones }: {
   async function save(nextEnabled: boolean, nextPhones: string[]) {
     setSaving(true)
     const supabase = createClient()
-    // Keep the older single-number alert_phone in sync so removing every number really stops texts
     await supabase.from('businesses').update({
       sms_alerts_enabled: nextEnabled,
       alert_phones: nextPhones,
-      alert_phone: nextPhones[0] ?? null,
     }).eq('id', businessId)
     setSaving(false)
   }
