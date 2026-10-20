@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { toE164 } from '@/lib/phone'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -127,7 +128,8 @@ export function NewClientForm() {
       .insert({
         name: form.businessName,
         industry: form.industry,
-        alert_phone: form.alertPhone || null,
+        alert_phone: toE164(form.alertPhone) ?? (form.alertPhone || null),
+        alert_phones: form.alertPhone ? [toE164(form.alertPhone) ?? form.alertPhone] : [],
         score_threshold: parseInt(form.scoreThreshold),
         services_offered: form.servicesOffered.split(',').map(s => s.trim()).filter(Boolean),
         services_excluded: form.servicesExcluded.split(',').map(s => s.trim()).filter(Boolean),

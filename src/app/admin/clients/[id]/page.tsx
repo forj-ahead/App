@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Phone, Clock, ChevronRight, Settings2 } from 'lucide-react'
 import { LeadFeed } from '@/components/lead-feed'
 import { SmsConfig } from '@/components/sms-config'
+import { alertPhonesFor } from '@/lib/phone'
 
 function ScoreBadge({ score }: { score: number }) {
   const [bg, text] =
@@ -123,7 +124,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 <SmsConfig
                   businessId={business.id}
                   initialEnabled={business.sms_alerts_enabled}
-                  initialPhones={business.alert_phones ?? (business.alert_phone ? [business.alert_phone] : [])}
+                  initialPhones={alertPhonesFor(business)}
                 />
               </div>
             </div>
