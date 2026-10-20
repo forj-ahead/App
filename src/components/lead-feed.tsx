@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from 'react'
 import { Phone, ChevronDown, ChevronUp, SlidersHorizontal, Check, PhoneCall, X, RefreshCw, StickyNote, Download, Trash2, Play, Pause, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
+import { isClientLead, callerTypeLabel, normalizeCallerType } from '@/lib/caller-type'
 import Link from 'next/link'
 
 type Status = 'new' | 'contacted' | 'closed' | 'disqualified'
@@ -58,7 +59,21 @@ function StatusPill({ status }: { status: Status }) {
   )
 }
 
-const STATUS_ACTIONS: { to: Status; label: string; icon: React.ElementType; style: string }[] = [
+// Only shown for businesses that sort callers into types (caller_type set)
+export function CallerTypePill({ type }: { type: string | null }) {
+  const t = normalizeCallerType(type)
+  if (!t) return null
+  const color = isClientLead({ caller_type: t })
+    ? 'text-sky-300 bg-sky-500/5 border-sky-500/25'
+    : 'text-orange-300 bg-orange-500/5 border-orange-500/25'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wide ${color}`}>
+      {callerTypeLabel(t)}
+    </span>
+  )
+}
+
+const STATUS_ACTIONS:{ to: Status; label: string; icon: React.ElementType; style: string }[] = [
   { to: 'contacted',    label: 'Mark contacted',    icon: PhoneCall, style: 'bg-purple-500/15 hover:bg-purple-500/25 border-purple-500/30 text-purple-300' },
   { to: 'closed',       label: 'Mark closed',       icon: Check,     style: 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-300' },
   { to: 'disqualified', label: 'Disqualify',        icon: X,         style: 'bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-400' },
@@ -157,6 +172,7 @@ function LeadRow({ lead: initialLead, onDelete }: { lead: Lead; onDelete: (id: s
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-white text-sm font-semibold">{lead.caller_name ?? 'Unknown caller'}</span>
+            <CallerTypePill type={lead.caller_type} />
             <span className="text-slate-500 text-xs font-mono">{lead.caller_number}</span>
           </div>
           <p className="text-slate-400 text-xs truncate">{lead.service_requested ?? 'No service identified'}</p>
@@ -317,12 +333,13 @@ function FilterGroup({ options, value, onChange }: {
 
 function exportCSV(leads: Lead[]) {
   const rows = [
-    ['Name', 'Phone', 'Score', 'Status', 'Service Requested', 'Summary', 'Notes', 'Date'],
+    ['Name', 'Phone', 'Score', 'Status', 'Type', 'Service Requested', 'Summary', 'Notes', 'Date'],
     ...leads.map(l => [
       l.caller_name ?? '',
       l.caller_number,
       String(l.score),
       l.status,
+      l.caller_type ?? '',
       l.service_requested ?? '',
       l.summary ?? '',
       l.notes ?? '',
@@ -344,17 +361,32 @@ export function LeadFeed({ leads: initialLeads }: { leads: Lead[] }) {
   const [minScore, setMinScore] = useState(0)
   const [status, setStatus] = useState('all')
   const [sort, setSort] = useState<'score' | 'date'>('score')
+  const [callerType, setCallerType] = useState('all')
   function removeLead(id: string) { setLeads(l => l.filter(x => x.id !== id)) }
+
+  // Type filter only appears when some leads aren't plain client leads (e.g. Kirila applicants)
+  const otherTypes = useMemo(() => [...new Set(
+    leads.filter(l => !isClientLead(l)).map(l => normalizeCallerType(l.caller_type)!)
+  )], [leads])
+  const typeFilters = [
+    { label: 'All', value: 'all' },
+    { label: 'Clients', value: 'client' },
+    ...otherTypes.map(t => ({ label: `${callerTypeLabel(t)}s`, value: t })),
+  ]
+
+  function clearFilters() { setMinScore(0); setStatus('all'); setCallerType('all') }
 
   const filtered = useMemo(() => {
     let out = leads.filter(l => l.score >= minScore)
     if (status !== 'all') out = out.filter(l => l.status === status)
+    if (callerType === 'client') out = out.filter(l => isClientLead(l))
+    else if (callerType !== 'all') out = out.filter(l => normalizeCallerType(l.caller_type) === callerType)
     return [...out].sort((a, b) =>
       sort === 'score'
         ? b.score - a.score
         : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
-  }, [leads, minScore, status, sort])
+  }, [leads, minScore, status, sort, callerType])
 
   return (
     <div>
@@ -366,6 +398,12 @@ export function LeadFeed({ leads: initialLeads }: { leads: Lead[] }) {
           </span>
           <FilterGroup options={SCORE_FILTERS.map(f => ({ label: f.label, min: f.min }))} value={minScore} onChange={setMinScore} />
         </div>
+        {otherTypes.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5 w-[42px]">Type</span>
+            <FilterGroup options={typeFilters} value={callerType} onChange={setCallerType} />
+          </div>
+        )}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-slate-500 text-xs font-medium flex items-center gap-1.5 w-[42px]">Status</span>
           <FilterGroup options={STATUS_FILTERS.map(f => ({ label: f.label, value: f.value }))} value={status} onChange={setStatus} />
@@ -388,8 +426,8 @@ export function LeadFeed({ leads: initialLeads }: { leads: Lead[] }) {
 
       <p className="text-slate-600 text-xs mb-3">
         {filtered.length} of {leads.length} lead{leads.length !== 1 ? 's' : ''}
-        {(minScore > 0 || status !== 'all') && (
-          <button onClick={() => { setMinScore(0); setStatus('all') }} className="ml-2 text-blue-400 hover:text-blue-300 transition-colors">
+        {(minScore > 0 || status !== 'all' || callerType !== 'all') && (
+          <button onClick={clearFilters} className="ml-2 text-blue-400 hover:text-blue-300 transition-colors">
             Clear filters
           </button>
         )}
@@ -406,7 +444,7 @@ export function LeadFeed({ leads: initialLeads }: { leads: Lead[] }) {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 border border-slate-700/50 rounded-xl bg-[#111827]/40">
           <p className="text-slate-400 text-sm font-medium">No leads match these filters</p>
-          <button onClick={() => { setMinScore(0); setStatus('all') }} className="text-blue-400 text-xs mt-2 hover:text-blue-300 transition-colors">
+          <button onClick={clearFilters} className="text-blue-400 text-xs mt-2 hover:text-blue-300 transition-colors">
             Clear filters
           </button>
         </div>

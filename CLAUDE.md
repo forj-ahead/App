@@ -48,7 +48,7 @@ If the client has a website, fetch their FAQ and services pages to pre-fill the 
 ### Step 3 — Submit the onboarding form
 Submitting automatically:
 1. Creates a `businesses` record in Supabase
-2. Calls `/api/admin/create-agent` which builds a prompt, creates a Retell LLM (`gpt-4o-mini`), and creates a Retell agent (voice: `cartesia-Sarah`)
+2. Calls `/api/admin/create-agent` which builds a global prompt, creates a Retell conversation flow (`gpt-4.1`; nodes Welcome → Qualify → Not a Fit / Wrap Up → End Call), and creates a Retell agent on it (voice: `cartesia-Sarah`, webhook set)
 3. Saves `retell_agent_id` back to the business record
 4. Shows success screen with agent ID and remaining steps
 
@@ -92,9 +92,10 @@ Leads are scored **1–5**:
 Default qualify threshold: **4+**
 
 ## Agent Prompt Standards
+Retell deprecated multi-prompt agents (no edits after Feb 1, 2027). All new agents are conversation flows (`/api/admin/create-agent` builds them). Older multi-prompt agents (Elliott, Reborn) should be converted before that date.
+
 All agents must:
-- Use `general_tools` with `end_call` (`speak_after_execution: false`)
-- Have three states: `information_collection` → `not_a_fit` / `wrap_up`
+- Be a conversation flow: Welcome (static greeting) → Qualify → Not a Fit / Wrap Up → End Call node; every transition points at a node
 - Use an American voice (default: `cartesia-Sarah`)
 - Never say "end call" out loud — hang up silently after natural goodbye
 - Have webhook URL set to `https://app.forjahead.com/api/webhooks/retell`
@@ -106,8 +107,11 @@ All agents must:
 - `leads` — qualified leads linked to calls. Has `score` (1–5), `score_reasoning`, `summary`, `status`, `notes`
 
 ## Current Clients
+- **Kirila Construction Services** — construction staffing, contacts Sam Kirila (`skirila@kirilacs.com`) and Leen (`ldayoub@kirilacs.com`), number: +19012953534, agent: conversation flow `agent_8129e04674a222db362e86d526` (old multi-prompt `agent_f78a837f76eb5a2148f03f3232` retired). Uses `scoring_instructions` for client vs applicant scoring.
 - **Elliott Land Management** — Chase Elliott, landscaping, agent: `agent_0c6facf840a7233887a16dc20a`
-- **Reborn Roofing** — Brett Kittleson (`brett@rebornroofing.com`), Memphis TN, agent: `agent_98994854ba133c544289b181d2`, number: +19012953534
+- **Reborn Roofing** — Brett Kittleson (`brett@rebornroofing.com`), Memphis TN, agent: `agent_98994854ba133c544289b181d2`. Its old number +19012953534 now serves Kirila.
+
+Full operating playbooks (onboarding, agents, numbers, logins, alerts, debugging): the `forj-ops` skill in `~/.claude/skills/forj-ops/`.
 
 ## Stripe
 - Live payment link: `https://buy.stripe.com/14A4gAd1W6rl3CN4K98AE00` ($199/mo)

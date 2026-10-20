@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Download, TrendingUp, TrendingDown, Minus, ChevronDown } from 'lucide-react'
+import { isClientLead } from '@/lib/caller-type'
 
 interface Lead {
   id: string
@@ -10,6 +11,7 @@ interface Lead {
   created_at: string
   status_updated_at: string | null
   caller_number: string
+  caller_type?: string | null
 }
 
 interface Call {
@@ -66,7 +68,7 @@ interface Business {
   name: string
 }
 
-export function ReportView({ leads, calls, period, prevLeadCount, businessName, businesses, isAdmin }: {
+export function ReportView({ leads: allLeads, calls, period, prevLeadCount, businessName, businesses, isAdmin }: {
   leads: Lead[]
   calls: Call[]
   period: string
@@ -89,9 +91,13 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
   }
 
   // ── Core stats ──────────────────────────────────────────────
+  // Lead stats count client leads only; other caller types (e.g. job applicants) are counted separately
+  const leads = allLeads.filter(l => isClientLead(l))
+  const otherCallers = allLeads.length - leads.length
   const totalCalls = calls.length
   const totalLeads = leads.length
-  const qualRate = totalCalls > 0 ? Math.round((totalLeads / totalCalls) * 100) : 0
+  const clientCalls = totalCalls - otherCallers
+  const qualRate = clientCalls > 0 ? Math.round((totalLeads / clientCalls) * 100) : 0
   const avgScore = totalLeads > 0
     ? (leads.reduce((s, l) => s + l.score, 0) / totalLeads).toFixed(1)
     : '—'
@@ -203,6 +209,11 @@ export function ReportView({ leads, calls, period, prevLeadCount, businessName, 
         <StatCard label="Qualification Rate" value={`${qualRate}%`} />
         <StatCard label="Avg Lead Score" value={avgScore} />
       </div>
+      {otherCallers > 0 && (
+        <p className="text-slate-500 text-xs -mt-3 mb-6">
+          Lead stats exclude {otherCallers} non-client caller{otherCallers !== 1 ? 's' : ''} (e.g. job applicants) in this period.
+        </p>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-4 mb-4">
         {/* Score breakdown */}

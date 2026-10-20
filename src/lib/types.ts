@@ -15,6 +15,7 @@ export interface Business {
   alert_phone: string | null
   alert_phones: string[]
   sms_alerts_enabled: boolean
+  scoring_instructions: string | null
   created_at: string
 }
 
@@ -37,6 +38,7 @@ export interface Lead {
   caller_number: string
   caller_name: string | null
   service_requested: string | null
+  caller_type: string | null
   score: number
   score_reasoning: string | null
   summary: string | null

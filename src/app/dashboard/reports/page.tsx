@@ -69,6 +69,7 @@ export default async function ReportsPage({
       .select('id', { count: 'exact', head: true })
       .gte('created_at', prevStart.toISOString())
       .lte('created_at', prevEnd.toISOString())
+      .or('caller_type.is.null,caller_type.eq.client') // match ReportView: client leads only
     if (businessId) prevQ.eq('business_id', businessId)
     const { count } = await prevQ
     prevLeadCount = count ?? 0

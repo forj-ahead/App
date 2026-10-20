@@ -5,6 +5,7 @@ import { Phone, ArrowLeft, Play, Pause, StickyNote } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 import Link from 'next/link'
+import { CallerTypePill } from '@/components/lead-feed'
 
 type Status = 'new' | 'contacted' | 'closed' | 'disqualified'
 
@@ -114,6 +115,7 @@ export function LeadDetail({ lead: initialLead }: { lead: Lead }) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h1 className="text-white text-lg font-semibold">{lead.caller_name ?? 'Unknown caller'}</h1>
+              <CallerTypePill type={lead.caller_type} />
               <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wide ${statusMeta.color}`}>
                 {statusMeta.label}
               </span>

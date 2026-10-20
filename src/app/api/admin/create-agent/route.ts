@@ -37,20 +37,20 @@ export async function POST(req: NextRequest) {
 
   const toneDesc = TONE_DESCRIPTIONS[tone] ?? TONE_DESCRIPTIONS.friendly
 
-  const greetingLine = greeting
-    ? `Always open every call with this exact greeting: "${greeting}"`
-    : `Always open every call with a warm, natural greeting — introduce yourself as ${agentName} from ${businessName} and ask how you can help today.`
+  // Spoken word-for-word by the Welcome node
+  const greetingText = greeting
+    || `Thanks for calling ${businessName}, this is ${agentName}. How can I help you today?`
 
   const servicesLine = servicesOffered
     ? `Services we OFFER: ${servicesOffered}`
     : `You handle general ${industry} inquiries — use good judgment about what likely fits.`
 
   const excludedLine = servicesExcluded
-    ? `Services we do NOT offer: ${servicesExcluded}. If a caller only needs one of these, let them know kindly and use end_call to close the conversation.`
+    ? `Services we do NOT offer: ${servicesExcluded}. If a caller only needs one of these, let them know kindly and wrap up.`
     : ''
 
   const areaLine = serviceArea
-    ? `We only serve: ${serviceArea}. If the caller is outside this area, let them know politely and use end_call.`
+    ? `We only serve: ${serviceArea}. If the caller is outside this area, let them know politely and wrap up.`
     : ''
 
   const questionsLine = customQuestions
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
     : `Ask the questions that make sense for a ${industry} business — understand what they need, their timeline, and whether they are the decision maker.`
 
   const disqualifyLine = disqualifyIf
-    ? `Wrap up and use end_call if:\n${disqualifyIf}`
-    : `Wrap up and use end_call if the caller clearly does not need ${industry} services, is just price shopping with no intent to move forward, is outside the service area, or is a solicitor.`
+    ? `The caller is not a fit if:\n${disqualifyIf}`
+    : `The caller is not a fit if they clearly do not need ${industry} services, are just price shopping with no intent to move forward, are outside the service area, or are a solicitor.`
 
   const faqsLine = faqs
     ? `\nFREQUENTLY ASKED QUESTIONS — answer these naturally if a caller asks:\n${faqs}`
@@ -67,75 +67,98 @@ export async function POST(req: NextRequest) {
 
   const extraLine = extraContext ? `\nAdditional context:\n${extraContext}` : ''
 
-  const generalPrompt = `You are ${agentName}, the call answering agent for ${businessName}, a ${industry} business. Your tone is ${toneDesc}.
-
-${greetingLine}
+  // Shared by every node; node instructions only cover that step of the call
+  const globalPrompt = `You are ${agentName}, the call answering agent for ${businessName}, a ${industry} business. Your tone is ${toneDesc}.
 
 ${servicesLine}
 ${excludedLine}
 ${areaLine}
 
-Your job is to have a genuine, unhurried conversation with the caller — not run through a checklist. Listen first, then ask questions naturally as the conversation develops. Never fire multiple questions at once.
+Have a genuine, unhurried conversation with the caller — not a checklist. Listen first, then ask questions naturally. Never ask more than one question at a time.
 
-As you talk, find out:
-- What they are looking for and why they are calling
-- ${questionsLine}
-- Their name and best callback number (always get these before ending)
+Never make promises about pricing, exact timelines, or availability. If you are unsure about something, tell them the team will follow up with those details.
 
-${disqualifyLine}
+Never say the words "end call" out loud.${faqsLine}${extraLine}`
 
-Once you have everything you need, let the caller know someone from the team will be in touch soon. Say a warm, natural goodbye — then use end_call to hang up. Never say the words "end call" out loud.
+  const saidGoodbye = 'The agent has said goodbye to the caller'
 
-Never make promises about pricing, exact timelines, or availability. If you are unsure about something, tell them the team will follow up with those details.${faqsLine}${extraLine}`
-
-  // Create Retell LLM with gpt-4o for best conversation quality
-  const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
+  const flowRes = await fetch('https://api.retellai.com/create-conversation-flow', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
-      general_prompt: generalPrompt,
-      general_tools: [
+      start_speaker: 'agent',
+      model_choice: { type: 'cascading', model: 'gpt-4.1' },
+      global_prompt: globalPrompt,
+      start_node_id: 'welcome',
+      nodes: [
         {
-          type: 'end_call',
-          name: 'end_call',
-          description: 'Silently end the phone call. Only call this after you have finished your goodbye — never say the words "end call" out loud.',
-          speak_after_execution: false,
-        },
-      ],
-      states: [
-        {
-          name: 'information_collection',
-          state_prompt: `Greet the caller and begin a natural conversation to understand what they need. Gather their name, callback number, and the key qualifying information. Do not rush — let the conversation flow.`,
+          id: 'welcome',
+          name: 'Welcome',
+          type: 'conversation',
+          instruction: { type: 'static_text', text: greetingText },
+          display_position: { x: 0, y: 0 },
           edges: [
-            { description: 'Caller is not a fit — outside service area, needs a service not offered, is a solicitor, or has no intent to move forward', destination_state_name: 'not_a_fit' },
-            { description: 'All key information collected — name, callback number, and what they need is clear', destination_state_name: 'wrap_up' },
+            { id: 'welcome-to-qualify', transition_condition: { type: 'prompt', prompt: 'The caller has responded' }, destination_node_id: 'qualify' },
           ],
         },
         {
-          name: 'not_a_fit',
-          state_prompt: 'Politely explain why you cannot help. Be kind and genuine. Wish them well, say a warm goodbye, then immediately call end_call.',
-          edges: [],
+          id: 'qualify',
+          name: 'Qualify',
+          type: 'conversation',
+          instruction: {
+            type: 'prompt',
+            text: `Understand what the caller needs and qualify them. As you talk, find out:
+- What they are looking for and why they are calling
+- ${questionsLine}
+- Their name and best callback number (always get these)
+
+${disqualifyLine}`,
+          },
+          display_position: { x: 400, y: 0 },
+          edges: [
+            { id: 'qualify-to-not-a-fit', transition_condition: { type: 'prompt', prompt: 'The caller is not a fit for this business' }, destination_node_id: 'not_a_fit' },
+            { id: 'qualify-to-wrap-up', transition_condition: { type: 'prompt', prompt: 'Name, callback number, and what they need are all clear' }, destination_node_id: 'wrap_up' },
+          ],
         },
         {
-          name: 'wrap_up',
-          state_prompt: 'Thank the caller. Confirm you have their name and best callback number. Let them know someone from the team will follow up soon. Say a warm, natural goodbye — then immediately call end_call.',
-          edges: [],
+          id: 'not_a_fit',
+          name: 'Not a Fit',
+          type: 'conversation',
+          instruction: { type: 'prompt', text: 'Politely explain why you cannot help. Be kind and genuine. Wish them well and say a warm goodbye.' },
+          display_position: { x: 800, y: -200 },
+          edges: [
+            { id: 'not-a-fit-to-end', transition_condition: { type: 'prompt', prompt: saidGoodbye }, destination_node_id: 'end' },
+          ],
+        },
+        {
+          id: 'wrap_up',
+          name: 'Wrap Up',
+          type: 'conversation',
+          instruction: { type: 'prompt', text: 'Thank the caller. Read back their name and best callback number to confirm. Let them know someone from the team will follow up soon, then say a warm, natural goodbye.' },
+          display_position: { x: 800, y: 200 },
+          edges: [
+            { id: 'wrap-up-to-end', transition_condition: { type: 'prompt', prompt: saidGoodbye }, destination_node_id: 'end' },
+          ],
+        },
+        {
+          id: 'end',
+          name: 'End Call',
+          type: 'end',
+          display_position: { x: 1200, y: 0 },
         },
       ],
-      starting_state: 'information_collection',
     }),
   })
 
-  if (!llmRes.ok) {
-    const err = await llmRes.text()
-    return NextResponse.json({ error: `Retell LLM error: ${err}` }, { status: 500 })
+  if (!flowRes.ok) {
+    const err = await flowRes.text()
+    return NextResponse.json({ error: `Retell conversation flow error: ${err}` }, { status: 500 })
   }
 
-  const llm = await llmRes.json()
+  const flow = await flowRes.json()
 
   // Create Retell Agent — cartesia-Sarah, American female, natural sounding
   const agentRes = await fetch('https://api.retellai.com/create-agent', {
@@ -146,7 +169,7 @@ Never make promises about pricing, exact timelines, or availability. If you are 
     },
     body: JSON.stringify({
       agent_name: `${businessName} — ${agentName}`,
-      response_engine: { type: 'retell-llm', llm_id: llm.llm_id },
+      response_engine: { type: 'conversation-flow', conversation_flow_id: flow.conversation_flow_id },
       voice_id: 'cartesia-Sarah',
       webhook_url: 'https://app.forjahead.com/api/webhooks/retell',
     }),
@@ -158,5 +181,5 @@ Never make promises about pricing, exact timelines, or availability. If you are 
   }
 
   const agent = await agentRes.json()
-  return NextResponse.json({ agentId: agent.agent_id, llmId: llm.llm_id })
+  return NextResponse.json({ agentId: agent.agent_id, conversationFlowId: flow.conversation_flow_id })
 }

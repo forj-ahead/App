@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizeCallerType, isClientLead, callerTypeLabel } from '@/lib/caller-type'
 
 export async function POST(req: NextRequest) {
   // Use service role key for webhook — bypasses RLS
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
         caller_number: from_number,
         caller_name: scored.callerName,
         service_requested: scored.serviceRequested,
+        caller_type: normalizeCallerType(scored.callerType),
         score: scored.score,
         score_reasoning: scored.reasoning,
         summary: scored.summary,
@@ -101,6 +103,10 @@ async function scoreLead({ transcript, business }: { transcript: string; busines
   console.log('ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY, 'transcript length:', transcript?.length)
   if (!transcript || !process.env.ANTHROPIC_API_KEY) return null
 
+  // Optional per-business rubric (businesses.scoring_instructions), e.g. separate
+  // client vs applicant scoring for staffing firms. May ask for a callerType field.
+  const extraInstructions = (business.scoring_instructions as string | null)?.trim()
+
   const prompt = `You are a lead qualification assistant for a ${business.industry} business called "${business.name}".
 
 Services they OFFER: ${(business.services_offered as string[])?.join(', ') || 'general services'}
@@ -120,6 +126,7 @@ Analyze this call and respond with a JSON object containing:
 
 Scoring guide: 5 = ready to book, clear need, decision maker. 4 = good lead, needs follow-up. 3 = possible, unclear intent. 2 = unlikely fit. 1 = wrong service, outside area, or solicitor.
 If the caller is asking for a service this business does not offer, score must be 1-2.
+${extraInstructions ? `\nBusiness-specific scoring instructions (these override the guide above where they conflict):\n${extraInstructions}\n` : ''}
 Respond with only valid JSON, no markdown.`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -155,7 +162,10 @@ Respond with only valid JSON, no markdown.`
 async function sendSmsAlert({ business, lead, to }: { business: Record<string, unknown>; lead: Record<string, unknown>; to: string }) {
   if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) return
 
-  const body = `New Lead ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nCall back: ${lead.caller_number}\nView lead: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads/${lead.id}`
+  // caller_type comes from the business's scoring_instructions; anything other than a client gets its own label
+  const callerType = lead.caller_type as string | null
+  const label = callerType && !isClientLead({ caller_type: callerType }) ? `New ${callerTypeLabel(callerType)}` : 'New Lead'
+  const body = `${label} ${lead.score}/5 — ${lead.caller_name ?? lead.caller_number}\n${lead.service_requested}\n\n${lead.summary}\n\nCall back: ${lead.caller_number}\nView lead: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads/${lead.id}`
 
   const params: Record<string, string> = {
     To: to,

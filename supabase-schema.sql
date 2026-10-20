@@ -24,6 +24,7 @@ create table if not exists businesses (
   score_threshold int not null default 7,
   alert_phone text,
   sms_alerts_enabled boolean not null default true,
+  scoring_instructions text, -- optional extra lead-scoring rubric, appended to the scoring prompt
   created_at timestamptz default now()
 );
 
@@ -57,6 +58,7 @@ create table if not exists leads (
   caller_number text not null,
   caller_name text,
   service_requested text,
+  caller_type text, -- from businesses.scoring_instructions, e.g. 'client' | 'applicant'; null = client
   score int not null check (score between 1 and 10),
   score_reasoning text,
   summary text,
